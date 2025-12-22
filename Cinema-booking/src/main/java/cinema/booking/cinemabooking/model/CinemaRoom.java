@@ -1,11 +1,13 @@
 package cinema.booking.cinemabooking.model;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import lombok.ToString;
 
 import java.util.List;
 
 @Entity
+@Data
 public class CinemaRoom {
 
     @Id

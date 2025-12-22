@@ -2,8 +2,10 @@ package cinema.booking.cinemabooking.model;
 
 import jakarta.persistence.*;
 import cinema.booking.cinemabooking.enums.TicketType;
+import lombok.Data;
 
 @Entity
+@Data
 public class Ticket {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
