@@ -1,0 +1,18 @@
+package cinema.booking.cinemabooking.dto;
+
+import lombok.Builder;
+import lombok.Data;
+
+import java.time.LocalDateTime;
+
+@Data
+@Builder
+public class ReservationSummaryDto {
+    private Long id;
+    private double totalPrice;
+    private LocalDateTime expiresAt;
+    private String status;
+    private int ticketCount;
+    private String movieTitle;
+    private LocalDateTime seanceStartTime;
+}
