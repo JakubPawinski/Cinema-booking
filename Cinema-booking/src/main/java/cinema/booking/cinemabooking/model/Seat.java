@@ -9,7 +9,7 @@ import lombok.Data;
 public class Seat {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
 
     private int rowNumber;
     private int seatNumber;

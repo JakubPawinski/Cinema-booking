@@ -15,6 +15,8 @@ public interface SeanceRepository extends JpaRepository<Seance, Long> {
     // Find seances within a specific time range
     List<Seance> findByStartTimeBetween(LocalDateTime start, LocalDateTime end);
 
+    List<Seance> findByCinemaRoomId(Long cinemaRoomId);
+
     // Find overlapping seances in a specific cinema room
     @Query("SELECT s FROM Seance s WHERE s.cinemaRoom.id = :roomId " +
             "AND ((s.startTime <= :endTime AND s.endTime >= :startTime))")

@@ -9,9 +9,9 @@ import java.time.LocalDateTime;
 @Builder
 public class SeanceDto {
     private Long id;
-    private LocalDateTime start;
-    private LocalDateTime end;
-    private double price;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
+    private double ticketPrice;
     private String roomName;
     private Long movieId;
 }
