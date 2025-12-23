@@ -1,5 +1,6 @@
 package cinema.booking.cinemabooking.dto;
 
+import cinema.booking.cinemabooking.enums.TicketType;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -13,4 +14,10 @@ public class CreateReservationDto {
 
     @NotEmpty(message = "At least one seat must be selected")
     private List<Long> seatIds;
+
+    @Data
+    public static class TicketRequest {
+        private Long seatId;
+        private TicketType ticketType;
+    }
 }

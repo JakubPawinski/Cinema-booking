@@ -19,6 +19,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 @RequiredArgsConstructor
@@ -50,8 +52,8 @@ public class MovieService {
      * Get all movies
      */
     @Transactional(readOnly = true)
-    public List<MovieDto> getAllMovies() {
-        return movieRepository.findAll().stream()
+    public Page<MovieDto> getAllMovies(Pageable pageable) {
+        return movieRepository.findAll(pageable)
                 .map(m -> MovieDto.builder()
                         .id(m.getId())
                         .title(m.getTitle())
@@ -60,8 +62,7 @@ public class MovieService {
                         .description(m.getDescription())
                         .imageUrl(m.getImageUrl())
                         .trailerUrl(m.getTrailerUrl())
-                        .build())
-                .collect(Collectors.toList());
+                        .build());
     }
 
 }
