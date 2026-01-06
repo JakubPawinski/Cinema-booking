@@ -65,4 +65,29 @@ public class MovieService {
                         .build());
     }
 
+    /*
+     * Get movie by ID
+     */
+    @Transactional(readOnly = true)
+    public MovieDto getMovieById(Long id) {
+        Movie movie = movieRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Movie not found"));
+        return MovieDto.builder()
+                .id(movie.getId())
+                .title(movie.getTitle())
+                .genre(movie.getGenre())
+                .durationMin(movie.getDurationMin())
+                .description(movie.getDescription())
+                .imageUrl(movie.getImageUrl())
+                .trailerUrl(movie.getTrailerUrl())
+                .build();
+    }
+
+    /*
+     * Delete movie by ID
+     */
+    @Transactional
+    public void deleteMovie(Long id) {
+        movieRepository.deleteById(id);
+    }
 }
