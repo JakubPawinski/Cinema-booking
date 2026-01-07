@@ -1,0 +1,90 @@
+body {
+    background: #1a1a1a; /* Ciemne tło kinowe */
+    color: #e0e0e0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+}
+
+.auth-card {
+    background-color: #2c2c2c;
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    width: 100%;
+    max-width: 450px;
+}
+
+.auth-header {
+    background: linear-gradient(135deg, #b71c1c 0%, #880e4f 100%); /* Czerwony gradient */
+    padding: 30px;
+    text-align: center;
+}
+
+.auth-header h3 {
+    margin: 0;
+    color: white;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.auth-body {
+    padding: 40px;
+}
+
+.form-control {
+    background-color: #3a3a3a;
+    border: 1px solid #555;
+    color: #fff;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.form-control:focus {
+    background-color: #3a3a3a;
+    border-color: #d32f2f;
+    color: #fff;
+    box-shadow: 0 0 0 0.25rem rgba(211, 47, 47, 0.25);
+}
+
+.btn-cinema {
+    background-color: #d32f2f;
+    color: white;
+    font-weight: 600;
+    padding: 12px;
+    border-radius: 8px;
+    width: 100%;
+    border: none;
+    transition: all 0.3s;
+}
+
+.btn-cinema:hover {
+    background-color: #b71c1c;
+    transform: translateY(-2px);
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.9em;
+}
+
+.auth-footer a {
+    color: #ff8a80;
+    text-decoration: none;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}
+
+.alert-danger {
+    background-color: rgba(220, 53, 69, 0.2);
+    border: 1px solid #dc3545;
+    color: #ff8a80;
+}

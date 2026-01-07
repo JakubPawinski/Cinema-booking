@@ -26,6 +26,10 @@ public class UserService {
             throw new RuntimeException("Username already exists");
         }
 
+        if (userRepository.existsByEmail(dto.getEmail())) {
+            throw new RuntimeException("Email already exists");
+        }
+
         // Create new User entity
         User user = new User();
         user.setUsername(dto.getUsername());
