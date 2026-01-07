@@ -10,7 +10,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping
+@RequestMapping("/api/v1/reservations")
 @RequiredArgsConstructor
 public class ReservationRestController {
     private final ReservationService reservationService;

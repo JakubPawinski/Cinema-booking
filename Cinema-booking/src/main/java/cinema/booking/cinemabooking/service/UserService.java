@@ -1,23 +1,25 @@
 package cinema.booking.cinemabooking.service;
 
-import cinema.booking.cinemabooking.dto.RegisterDto;
+import cinema.booking.cinemabooking.dto.UserDto;
 import cinema.booking.cinemabooking.enums.UserRole;
 import cinema.booking.cinemabooking.model.User;
 import cinema.booking.cinemabooking.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     /*
      * Register a new user
      */
     @Transactional
-    public void register(RegisterDto dto) {
+    public void register(UserDto dto) {
 
         // Check if username already exists
         if (userRepository.existsByUsername(dto.getUsername())) {
@@ -31,8 +33,8 @@ public class UserService {
         user.setFirstName(dto.getFirstName());
         user.setLastName(dto.getLastName());
 
-        // For simplicity, storing password as plain text
-        user.setPassword("{noop}" + dto.getPassword());
+        // Encode and set password
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
 
         // Set default role
         user.setRole(UserRole.USER.name());
