@@ -31,41 +31,24 @@ public class SeanceService {
     private final TicketRepository ticketRepository;
 
     /*
-     * Method to get the repertoire (list of movies with their seances) for a specific date.
+     * Method to get the repertoire for a specific date
      */
     @Transactional(readOnly = true)
     public List<MovieWithSeancesDto> getRepertoireForDate(LocalDate date) {
-        // Define the start and end of the specified date
         LocalDateTime startOfDay = date.atStartOfDay();
         LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
 
-        // Fetch seances within the specified date range
         List<Seance> seances = seanceRepository.findByStartTimeBetween(startOfDay, endOfDay);
 
-        // Group seances by movie
         Map<Movie, List<Seance>> seancesByMovie = seances.stream()
                 .collect(Collectors.groupingBy(Seance::getMovie));
 
-        // Prepare the result list
         List<MovieWithSeancesDto> result = new ArrayList<>();
 
-        // Construct MovieWithSeancesDto for each movie and its seances
         for (Map.Entry<Movie, List<Seance>> entry : seancesByMovie.entrySet()) {
             Movie movie = entry.getKey();
             List<Seance> movieSeances = entry.getValue();
 
-            // Create MovieDto
-            MovieDto movieDto = MovieDto.builder()
-                    .id(movie.getId())
-                    .title(movie.getTitle())
-                    .genre(movie.getGenre())
-                    .durationMin(movie.getDurationMin())
-                    .description(movie.getDescription())
-                    .imageUrl(movie.getImageUrl())
-                    .trailerUrl(movie.getTrailerUrl())
-                    .build();
-
-            // Create list of SeanceDto
             List<SeanceDto> seanceDtos = movieSeances.stream()
                     .map(seance -> SeanceDto.builder()
                             .id(seance.getId())
@@ -77,9 +60,21 @@ public class SeanceService {
                             .build())
                     .collect(Collectors.toList());
 
+            MovieWithSeancesDto dto = MovieWithSeancesDto.builder()
+                    .movieId(movie.getId())
+                    .title(movie.getTitle())
+                    .genre(movie.getGenre())
+                    .durationMin(movie.getDurationMin())
+                    .description(movie.getDescription())
+                    .imageUrl(movie.getImageUrl())
+                    .seances(seanceDtos)
+                    .build();
 
-            result.add(new MovieWithSeancesDto(movieDto, seanceDtos));
+            result.add(dto);
         }
+
+        // Sort the result by movie title
+        result.sort((a, b) -> a.getTitle().compareTo(b.getTitle()));
 
         return result;
     }
