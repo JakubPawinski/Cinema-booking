@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/movies")
+@RestController
 public class MovieRestController {
     private final MovieService movieService;
 

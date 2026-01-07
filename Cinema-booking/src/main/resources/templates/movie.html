@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>All Movies</title>
+</head>
+<body>
+
+<div layout:fragment="content">
+
+    <section class="pt-24 pb-12 bg-cinema-black relative">
+        <div class="absolute inset-0 bg-gradient-to-b from-purple-900/20 to-cinema-black pointer-events-none"></div>
+        <div class="container mx-auto px-6 relative z-10 text-center">
+            <h1 class="text-4xl md:text-6xl font-bold font-serif mb-4 animate-fade-in-up">
+                Movies we <span class="text-cinema-accent">play</span>
+            </h1>
+            <p class="text-gray-400 text-lg max-w-2xl mx-auto">
+                Browse the full library of movies available at Cinema booking.
+                From worldwide hits to niche art-house cinema.
+            </p>
+        </div>
+    </section>
+
+    <section class="pb-20 bg-cinema-black min-h-screen">
+        <div class="container mx-auto px-6">
+
+            <div class="flex justify-end mb-8">
+                <div class="relative">
+                    <input type="text" placeholder="Search for a movie..." class="bg-cinema-dark border border-gray-700 text-white rounded-full py-2 px-6 pl-10 focus:outline-none focus:border-cinema-accent focus:ring-1 focus:ring-cinema-accent transition w-64">
+                    <i class="fas fa-search absolute left-4 top-3 text-gray-500"></i>
+                </div>
+            </div>
+
+            <div id="loader" class="text-center py-20">
+                <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cinema-accent"></div>
+                <p class="text-gray-400 mt-4">Loading library...</p>
+            </div>
+
+            <div id="movies-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 hidden">
+            </div>
+
+            <div id="pagination-controls" class="flex justify-center items-center gap-4 mt-16 hidden">
+                <button id="prev-btn" class="px-6 py-2 rounded border border-gray-700 text-gray-400 hover:text-white hover:border-cinema-accent transition disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fas fa-chevron-left mr-2"></i> Previous
+                </button>
+                <span id="page-info" class="text-gray-400 font-mono">Page 1 of 1</span>
+                <button id="next-btn" class="px-6 py-2 rounded border border-gray-700 text-gray-400 hover:text-white hover:border-cinema-accent transition disabled:opacity-50 disabled:cursor-not-allowed">
+                    Next <i class="fas fa-chevron-right ml-2"></i>
+                </button>
+            </div>
+
+        </div>
+    </section>
+
+    <script>
+        let currentPage = 0;
+        const pageSize = 8; // Number of movies per page
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadMovies(currentPage);
+
+            document.getElementById('prev-btn').addEventListener('click', () => {
+                if (currentPage > 0) {
+                    loadMovies(currentPage - 1);
+                }
+            });
+
+            document.getElementById('next-btn').addEventListener('click', () => {
+                loadMovies(currentPage + 1);
+            });
+        });
+
+        async function loadMovies(page) {
+            const grid = document.getElementById('movies-grid');
+            const loader = document.getElementById('loader');
+            const pagination = document.getElementById('pagination-controls');
+
+            // Show loader, hide content
+            loader.classList.remove('hidden');
+            grid.classList.add('hidden');
+            pagination.classList.add('hidden');
+
+            try {
+                // API call (with pagination parameters)
+                const response = await fetch(`/api/v1/movies?page=${page}&size=${pageSize}&sort=id,desc`);
+
+                if (!response.ok) throw new Error('Error fetching data');
+
+                const data = await response.json();
+                // data.content -> list of movies
+                // data.totalPages -> number of pages
+                // data.number -> current page
+
+                renderMovies(data.content);
+                updatePagination(data);
+
+                // Hide loader, show content
+                loader.classList.add('hidden');
+                grid.classList.remove('hidden');
+                pagination.classList.remove('hidden');
+
+                // Scroll to top of grid
+                if(page !== currentPage) {
+                    grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+                currentPage = data.number;
+
+            } catch (error) {
+                console.error(error);
+                loader.innerHTML = `<p class="text-red-500">Failed to fetch movies.</p>`;
+            }
+        }
+
+        function renderMovies(movies) {
+            const grid = document.getElementById('movies-grid');
+            grid.innerHTML = '';
+
+            if (movies.length === 0) {
+                grid.innerHTML = `<div class="col-span-4 text-center text-gray-500 text-xl">No movies in the database.</div>`;
+                return;
+            }
+
+            movies.forEach(movie => {
+                const imageUrl = movie.imageUrl ? movie.imageUrl : 'https://placehold.co/400x600/1a1a1a/FFF?text=No+Cover';
+
+                const card = `
+                    <a href="/movies/${movie.id}" class="group relative rounded-xl overflow-hidden bg-cinema-dark shadow-xl hover:shadow-2xl hover:shadow-purple-900/20 transition duration-300 border border-white/5 animate-fade-in-up block">
+                        <div class="relative h-[450px] overflow-hidden">
+                            <img src="${imageUrl}" alt="${movie.title}"
+                                 class="w-full h-full object-cover transition duration-700 group-hover:scale-110 group-hover:brightness-110">
+
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-end p-6">
+                                 <span class="bg-cinema-accent text-white w-full py-3 rounded font-bold mb-3 text-center uppercase tracking-wide">
+                                    Details
+                                 </span>
+
+                                 <div class="flex justify-between items-center text-gray-300 text-xs mt-2 border-t border-gray-700 pt-3">
+                                    <span><i class="fas fa-clock text-cinema-accent mr-1"></i> ${movie.durationMin} min</span>
+                                    <span><i class="fas fa-film text-cinema-accent mr-1"></i> ${movie.genre}</span>
+                                 </div>
+                            </div>
+
+                            <div class="absolute top-4 left-4 bg-cinema-black/80 backdrop-blur text-white font-bold text-xs px-3 py-1 rounded shadow-lg border border-white/10 uppercase tracking-wider">
+                                ${movie.genre}
+                            </div>
+                        </div>
+
+                        <div class="p-5">
+                            <h3 class="text-xl font-bold mb-2 group-hover:text-cinema-accent transition truncate font-serif text-white" title="${movie.title}">
+                                ${movie.title}
+                            </h3>
+                            <p class="text-sm text-gray-500 line-clamp-3 leading-relaxed">
+                                ${movie.description}
+                            </p>
+                        </div>
+                    </a>
+                `;
+                grid.innerHTML += card;
+            });
+        }
+
+        function updatePagination(pageData) {
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const info = document.getElementById('page-info');
+
+            prevBtn.disabled = pageData.first; // Disable if first page
+            nextBtn.disabled = pageData.last;  // Disable if last page
+
+            info.textContent = `Page ${pageData.number + 1} of ${pageData.totalPages}`;
+        }
+    </script>
+
+</div>
+
+</body>
+</html>

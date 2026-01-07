@@ -43,6 +43,9 @@ public class MovieService {
         movie.setDurationMin(dto.getDurationMin());
         movie.setImageUrl(dto.getImageUrl());
         movie.setTrailerUrl(dto.getTrailerUrl());
+        movie.setDirector(dto.getDirector());
+        movie.setMainCast(dto.getMainCast());
+        movie.setAgeRating(dto.getAgeRating());
 
         movieRepository.save(movie);
 
@@ -62,6 +65,9 @@ public class MovieService {
                         .description(m.getDescription())
                         .imageUrl(m.getImageUrl())
                         .trailerUrl(m.getTrailerUrl())
+                        .director(m.getDirector() != null ? m.getDirector() : "Unknown")
+                        .mainCast(m.getMainCast() != null ? m.getMainCast() : "Various")
+                        .ageRating(m.getAgeRating() != null ? m.getAgeRating() : "Not Rated")
                         .build());
     }
 
@@ -80,6 +86,9 @@ public class MovieService {
                 .description(movie.getDescription())
                 .imageUrl(movie.getImageUrl())
                 .trailerUrl(movie.getTrailerUrl())
+                .director(movie.getDirector() != null ? movie.getDirector() : "Unknown")
+                .mainCast(movie.getMainCast() != null ? movie.getMainCast() : "Various")
+                .ageRating(movie.getAgeRating() != null ? movie.getAgeRating() : "Not Rated")
                 .build();
     }
 

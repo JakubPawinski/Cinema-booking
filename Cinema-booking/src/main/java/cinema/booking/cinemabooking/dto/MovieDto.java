@@ -13,4 +13,8 @@ public class MovieDto {
     private String description;
     private String imageUrl;
     private String trailerUrl;
+
+    private String director;
+    private String mainCast;
+    private String ageRating;
 }

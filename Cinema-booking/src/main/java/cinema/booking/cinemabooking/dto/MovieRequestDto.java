@@ -20,6 +20,10 @@ public class MovieRequestDto {
     @Min(value = 1, message = "Duration must be at least 1 minute")
     private int durationMin;
 
+    private String director;
+    private String mainCast;
+    private String ageRating;
+
     private String imageUrl;
     private String trailerUrl;
 }

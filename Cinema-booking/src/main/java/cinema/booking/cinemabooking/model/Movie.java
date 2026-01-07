@@ -23,6 +23,10 @@ public class Movie {
     private String imageUrl;
     private String trailerUrl;
 
+    private String director;
+    private String mainCast;
+    private String ageRating;
+
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL)
     @ToString.Exclude
     private Set<Seance> seances;
