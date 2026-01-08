@@ -99,4 +99,23 @@ public class MovieService {
     public void deleteMovie(Long id) {
         movieRepository.deleteById(id);
     }
+
+    /*
+     * Update movie by ID
+     */
+    @Transactional
+    public void updateMovie(Long id, MovieRequestDto dto) {
+        Movie movie = movieRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Movie not found"));
+        movie.setTitle(dto.getTitle());
+        movie.setDescription(dto.getDescription());
+        movie.setGenre(dto.getGenre());
+        movie.setDurationMin(dto.getDurationMin());
+        movie.setImageUrl(dto.getImageUrl());
+        movie.setTrailerUrl(dto.getTrailerUrl());
+        movie.setDirector(dto.getDirector());
+        movie.setMainCast(dto.getMainCast());
+        movie.setAgeRating(dto.getAgeRating());
+        movieRepository.save(movie);
+    }
 }

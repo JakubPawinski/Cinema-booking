@@ -61,3 +61,5 @@ VALUES
      'Patrick Wilson, Vera Farmiga',
      '18+')
 ON CONFLICT DO NOTHING;
+
+INSERT INTO cinema_room (name) VALUES ('Sala 1 - IMAX'), ('Sala 2 - Standard'), ('Sala 3 - VIP');

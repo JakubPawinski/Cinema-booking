@@ -1,15 +1,8 @@
 package cinema.booking.cinemabooking.service;
 
-import cinema.booking.cinemabooking.dto.MovieDto;
-import cinema.booking.cinemabooking.dto.MovieWithSeancesDto;
-import cinema.booking.cinemabooking.dto.SeanceDto;
-import cinema.booking.cinemabooking.dto.SeatDto;
-import cinema.booking.cinemabooking.model.Seance;
-import cinema.booking.cinemabooking.model.Seat;
-import cinema.booking.cinemabooking.model.Ticket;
-import cinema.booking.cinemabooking.repository.SeanceRepository;
-import cinema.booking.cinemabooking.repository.SeatRepository;
-import cinema.booking.cinemabooking.repository.TicketRepository;
+import cinema.booking.cinemabooking.dto.*;
+import cinema.booking.cinemabooking.model.*;
+import cinema.booking.cinemabooking.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,8 +13,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.Map;
 import java.util.ArrayList;
-import cinema.booking.cinemabooking.model.Movie;
-
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +20,8 @@ public class SeanceService {
     private final SeanceRepository seanceRepository;
     private final SeatRepository seatRepository;
     private final TicketRepository ticketRepository;
+    private final CinemaRoomRepository cinemaRoomRepository;
+    private final MovieRepository movieRepository;
 
     /*
      * Method to get the repertoire for a specific date
@@ -73,9 +66,7 @@ public class SeanceService {
             result.add(dto);
         }
 
-        // Sort the result by movie title
         result.sort((a, b) -> a.getTitle().compareTo(b.getTitle()));
-
         return result;
     }
 
@@ -84,11 +75,9 @@ public class SeanceService {
      */
     @Transactional(readOnly = true)
     public SeanceDto getSeanceDetails(Long seanceId) {
-        // Fetch the seance by ID
         Seance seance = seanceRepository.findById(seanceId)
                 .orElseThrow(() -> new RuntimeException("Seans nie istnieje"));
 
-        // Convert Seance entity to SeanceDto and return
         return SeanceDto.builder()
                 .id(seance.getId())
                 .startTime(seance.getStartTime())
@@ -99,28 +88,19 @@ public class SeanceService {
                 .build();
     }
 
-
     /*
      * Method to get the status of seats (occupied or available) for a specific seance.
      */
     @Transactional(readOnly = true)
     public List<SeatDto> getSeatsStatusForMovie(Long seanceId) {
-
-        // Fetch the seance by ID
         Seance seance = seanceRepository.findById(seanceId).orElseThrow(() -> new RuntimeException("Seance not found"));
-
-        // Fetch all seats in the cinema room for the seance
         List<Seat> allSeats = seatRepository.findAllByCinemaRoom_Id(seance.getCinemaRoom().getId());
-
-        // Fetch all taken tickets for the seance
         List<Ticket> takenTickets = ticketRepository.findAllTakenTickets(seanceId, LocalDateTime.now());
 
-        // Extract the IDs of taken seats
         List<Long> takenSeatIds = takenTickets.stream()
                 .map(ticket -> ticket.getSeat().getId())
                 .toList();
 
-        // Prepare and return the list of SeatDto with occupancy status
         return allSeats.stream()
                 .map(seat -> cinema.booking.cinemabooking.dto.SeatDto.builder()
                         .id(seat.getId())
@@ -129,5 +109,61 @@ public class SeanceService {
                         .isOccupied(takenSeatIds.contains(seat.getId()))
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    /*
+     * Create a new seance with overlap validation
+     */
+    @Transactional
+    public void createSeance(SeanceRequestDto dto) {
+        // 1. Pobierz Film (używając wstrzykniętego repozytorium)
+        Movie movie = movieRepository.findById(dto.getMovieId())
+                .orElseThrow(() -> new RuntimeException("Film nie istnieje"));
+
+        // 2. Pobierz Salę
+        CinemaRoom room = cinemaRoomRepository.findById(dto.getRoomId())
+                .orElseThrow(() -> new RuntimeException("Sala nie istnieje"));
+
+        // 3. Oblicz czas zakończenia (Start + Czas trwania filmu + 20 min na sprzątanie)
+        LocalDateTime startTime = dto.getStartTime();
+        int cleaningTime = 20;
+
+        // Koniec zajętości sali = start + film + sprzątanie
+        LocalDateTime busyUntil = startTime.plusMinutes(movie.getDurationMin() + cleaningTime);
+
+        // 4. WALIDACJA NAKŁADANIA SIĘ (Overlap)
+        List<Seance> overlaps = seanceRepository.findOverlappingSeances(room.getId(), startTime, busyUntil);
+
+        if (!overlaps.isEmpty()) {
+            throw new IllegalStateException("W tej sali odbywa się w tym czasie inny seans! Wybierz inną godzinę lub salę.");
+        }
+
+        // 5. Zapisz Seans
+        Seance seance = new Seance();
+        seance.setMovie(movie);
+        seance.setCinemaRoom(room);
+        seance.setStartTime(startTime);
+
+        // W bazie zapisujemy faktyczny koniec filmu (bez sprzątania), żeby wiedzieć kiedy się kończy seans dla widza
+        seance.setEndTime(startTime.plusMinutes(movie.getDurationMin()));
+
+        seance.setTicketPrice(dto.getTicketPrice());
+
+        seanceRepository.save(seance);
+    }
+
+    /*
+     * Delete a seance by its ID
+     */
+    @Transactional
+    public void deleteSeance(Long id) {
+        seanceRepository.deleteById(id);
+    }
+
+    /*
+     * Get all seances sorted by start time descending
+     */
+    public List<Seance> getAllSeances() {
+        return seanceRepository.findAll(org.springframework.data.domain.Sort.by("startTime").descending());
     }
 }

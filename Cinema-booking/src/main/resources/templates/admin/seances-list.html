@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+  <title>Zarządzanie Seansami</title>
+</head>
+<body>
+
+<div layout:fragment="content">
+  <div class="container mx-auto px-6 py-12">
+
+    <div th:if="${success}" class="bg-green-600 text-white p-4 rounded mb-6 shadow-lg">
+      <i class="fas fa-check-circle mr-2"></i> <span th:text="${success}"></span>
+    </div>
+
+    <div class="flex justify-between items-center mb-8">
+      <h1 class="text-3xl font-bold font-serif text-white border-l-4 border-cinema-accent pl-4">HARMONOGRAM SEANSÓW</h1>
+      <a th:href="@{/admin/seances/add}" class="bg-cinema-accent hover:bg-cinema-accentHover text-white px-6 py-2 rounded font-bold transition shadow-lg no-underline">
+        <i class="fas fa-plus mr-2"></i> Dodaj Seans
+      </a>
+    </div>
+
+    <div class="bg-cinema-dark rounded-xl border border-gray-800 overflow-hidden shadow-2xl">
+      <table class="w-full text-left text-gray-400">
+        <thead class="bg-black text-cinema-gold uppercase font-bold text-sm">
+        <tr>
+          <th class="p-4">Data i Godzina</th>
+          <th class="p-4">Film</th>
+          <th class="p-4">Sala</th>
+          <th class="p-4">Cena</th>
+          <th class="p-4 text-center">Akcje</th>
+        </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-800">
+        <tr th:each="seance : ${seances}" class="hover:bg-white/5 transition">
+          <td class="p-4">
+            <div class="text-white font-bold" th:text="${#temporals.format(seance.startTime, 'dd.MM.yyyy')}">Data</div>
+            <div class="text-sm text-cinema-accent" th:text="${#temporals.format(seance.startTime, 'HH:mm')} + ' - ' + ${#temporals.format(seance.endTime, 'HH:mm')}">Godz</div>
+          </td>
+          <td class="p-4 text-white font-bold" th:text="${seance.movie.title}">Film</td>
+          <td class="p-4" th:text="${seance.cinemaRoom.name}">Sala</td>
+          <td class="p-4" th:text="${seance.ticketPrice} + ' PLN'">25.0 PLN</td>
+          <td class="p-4 text-center">
+            <form th:action="@{/admin/seances/delete/{id}(id=${seance.id})}" method="post"
+                  onsubmit="return confirm('Czy na pewno chcesz odwołać ten seans?');">
+              <button type="submit" class="text-red-500 hover:text-red-400 transition bg-transparent border-0 cursor-pointer" title="Odwołaj">
+                <i class="fas fa-trash"></i>
+              </button>
+            </form>
+          </td>
+        </tr>
+        <tr th:if="${seances.empty}">
+          <td colspan="5" class="p-8 text-center text-gray-500">Brak zaplanowanych seansów.</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

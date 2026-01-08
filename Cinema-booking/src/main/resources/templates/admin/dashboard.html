@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Panel Administratora</title>
+</head>
+<body>
+
+<div layout:fragment="content">
+    <div class="container mx-auto px-6 py-12">
+
+        <div class="flex flex-col md:flex-row justify-between items-center mb-12">
+            <div>
+                <h1 class="text-3xl font-bold font-serif text-white border-l-4 border-cinema-accent pl-4">
+                    PANEL ADMINISTRATORA
+                </h1>
+                <p class="text-gray-400 mt-2 pl-5">Zarządzaj kinem z jednego miejsca.</p>
+            </div>
+
+            <div class="mt-4 md:mt-0">
+                <span class="bg-gray-800 text-gray-300 px-4 py-2 rounded-full text-sm font-bold border border-gray-700">
+                    <i class="fas fa-user-shield mr-2 text-cinema-accent"></i> Zalogowano jako Admin
+                </span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div class="bg-cinema-dark p-6 rounded-xl border border-white/5 shadow-lg flex items-center justify-between">
+                <div>
+                    <p class="text-gray-400 text-sm uppercase tracking-wider">Filmy w bazie</p>
+                    <h3 class="text-3xl font-bold text-white mt-1" th:text="${moviesCount}">0</h3>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-blue-900/30 flex items-center justify-center text-blue-400">
+                    <i class="fas fa-film text-xl"></i>
+                </div>
+            </div>
+
+            <div class="bg-cinema-dark p-6 rounded-xl border border-white/5 shadow-lg flex items-center justify-between">
+                <div>
+                    <p class="text-gray-400 text-sm uppercase tracking-wider">Użytkownicy</p>
+                    <h3 class="text-3xl font-bold text-white mt-1" th:text="${usersCount}">0</h3>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-green-900/30 flex items-center justify-center text-green-400">
+                    <i class="fas fa-users text-xl"></i>
+                </div>
+            </div>
+
+            <div class="bg-cinema-dark p-6 rounded-xl border border-white/5 shadow-lg flex items-center justify-between">
+                <div>
+                    <p class="text-gray-400 text-sm uppercase tracking-wider">Wszystkie Rezerwacje</p>
+                    <h3 class="text-3xl font-bold text-white mt-1" th:text="${reservationsCount}">0</h3>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-purple-900/30 flex items-center justify-center text-purple-400">
+                    <i class="fas fa-ticket-alt text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="text-xl font-bold text-white mb-6 uppercase tracking-wider">Szybki Dostęp</h2>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+            <a th:href="@{/admin/movies}"
+               class="group bg-gradient-to-br from-gray-800 to-cinema-dark p-8 rounded-2xl border border-white/5 hover:border-cinema-accent hover:shadow-2xl hover:shadow-purple-900/20 transition duration-300 relative overflow-hidden no-underline block">
+                <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition transform group-hover:scale-110">
+                    <i class="fas fa-film text-9xl"></i>
+                </div>
+
+                <div class="relative z-10">
+                    <div class="w-14 h-14 rounded-lg bg-cinema-accent flex items-center justify-center text-white mb-6 shadow-lg group-hover:scale-110 transition">
+                        <i class="fas fa-video text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">Filmy</h3>
+                    <p class="text-sm text-gray-400 group-hover:text-gray-300 transition">
+                        Dodawaj, edytuj i usuwaj filmy z repertuaru.
+                    </p>
+                </div>
+            </a>
+
+            <a th:href="@{/admin/seances}"
+               class="group bg-gradient-to-br from-gray-800 to-cinema-dark p-8 rounded-2xl border border-white/5 hover:border-blue-500 hover:shadow-2xl hover:shadow-blue-900/20 transition duration-300 relative overflow-hidden no-underline block">
+                <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition transform group-hover:scale-110">
+                    <i class="fas fa-clock text-9xl"></i>
+                </div>
+
+                <div class="relative z-10">
+                    <div class="w-14 h-14 rounded-lg bg-blue-600 flex items-center justify-center text-white mb-6 shadow-lg group-hover:scale-110 transition">
+                        <i class="fas fa-calendar-alt text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">Seanse</h3>
+                    <p class="text-sm text-gray-400 group-hover:text-gray-300 transition">
+                        Planuj godziny emisji filmów w salach.
+                    </p>
+                </div>
+            </a>
+
+            <a href="#"
+               class="group bg-gradient-to-br from-gray-800 to-cinema-dark p-8 rounded-2xl border border-white/5 hover:border-green-500 hover:shadow-2xl hover:shadow-green-900/20 transition duration-300 relative overflow-hidden no-underline block">
+                <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition transform group-hover:scale-110">
+                    <i class="fas fa-chart-line text-9xl"></i>
+                </div>
+
+                <div class="relative z-10">
+                    <div class="w-14 h-14 rounded-lg bg-green-600 flex items-center justify-center text-white mb-6 shadow-lg group-hover:scale-110 transition">
+                        <i class="fas fa-chart-pie text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">Raporty</h3>
+                    <p class="text-sm text-gray-400 group-hover:text-gray-300 transition">
+                        Sprawdź przychody i statystyki sprzedaży.
+                    </p>
+                </div>
+            </a>
+
+            <a href="#"
+               class="group bg-gradient-to-br from-gray-800 to-cinema-dark p-8 rounded-2xl border border-white/5 hover:border-yellow-500 hover:shadow-2xl hover:shadow-yellow-900/20 transition duration-300 relative overflow-hidden no-underline block">
+                <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition transform group-hover:scale-110">
+                    <i class="fas fa-users text-9xl"></i>
+                </div>
+
+                <div class="relative z-10">
+                    <div class="w-14 h-14 rounded-lg bg-yellow-600 flex items-center justify-center text-white mb-6 shadow-lg group-hover:scale-110 transition">
+                        <i class="fas fa-user-cog text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">Użytkownicy</h3>
+                    <p class="text-sm text-gray-400 group-hover:text-gray-300 transition">
+                        Zarządzaj kontami klientów i pracowników.
+                    </p>
+                </div>
+            </a>
+
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
