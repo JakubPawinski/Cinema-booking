@@ -1,6 +1,8 @@
 package cinema.booking.cinemabooking.model;
 import jakarta.persistence.*;
 import lombok.Data;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -25,6 +27,6 @@ public class User {
 
     private String role;
 
-    @OneToMany(mappedBy = "user")
-    private List<Reservation> reservations;
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<Reservation> reservations = new ArrayList<>();
 }

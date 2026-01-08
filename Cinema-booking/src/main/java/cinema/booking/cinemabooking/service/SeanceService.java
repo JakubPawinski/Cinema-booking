@@ -66,8 +66,7 @@ public class SeanceService {
             result.add(dto);
         }
 
-        result.sort((a, b) -> a.getTitle().compareTo(b.getTitle()));
-        return result;
+        return result.stream().sorted((a, b) -> a.getTitle().compareTo(b.getTitle())).collect(Collectors.toList());
     }
 
     /*

@@ -21,6 +21,7 @@ public class RepertoireRestController {
     @GetMapping
     public ResponseEntity<List<MovieWithSeancesDto>> getRepertoire(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
 
+        System.out.println("Received date parameter: " + date);
         if (date == null) {
             date = LocalDate.now();
         }

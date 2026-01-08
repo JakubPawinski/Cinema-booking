@@ -3,6 +3,9 @@ package cinema.booking.cinemabooking.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.ToString;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -27,7 +30,7 @@ public class Movie {
     private String mainCast;
     private String ageRating;
 
-    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @ToString.Exclude
-    private Set<Seance> seances;
+    private List<Seance> seances = new ArrayList<>();
 }
