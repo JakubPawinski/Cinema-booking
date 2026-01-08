@@ -20,7 +20,8 @@ public class Seance {
     @Column(nullable = false)
     private LocalDateTime endTime; // calculated based on movie duration
 
-    private double ticketPrice;
+    private double regularTicketPrice;
+    private double reducedTicketPrice;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "movie_id", nullable = false)

@@ -13,5 +13,6 @@ public class SeanceRequestDto {
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private LocalDateTime startTime;
 
-    private double ticketPrice;
+    private double regularTicketPrice;
+    private double reducedTicketPrice;
 }

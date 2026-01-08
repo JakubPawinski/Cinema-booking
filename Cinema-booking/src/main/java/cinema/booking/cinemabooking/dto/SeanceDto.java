@@ -11,7 +11,8 @@ public class SeanceDto {
     private Long id;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-    private double ticketPrice;
+    private double regularTicketPrice;
+    private double reducedTicketPrice;
     private String roomName;
     private Long movieId;
 }

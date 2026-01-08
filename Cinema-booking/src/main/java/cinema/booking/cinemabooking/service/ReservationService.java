@@ -43,11 +43,12 @@ public class ReservationService {
         // Check seat availability
         List<Ticket> takenTickets = ticketRepository.findAllTakenTickets(seance.getId(), LocalDateTime.now());
         List<Long> takenSeatIds = takenTickets.stream()
-                .map(ticket -> (long) ticket.getSeat().getId())
+                .map(ticket -> ticket.getSeat().getId())
                 .toList();
 
         // Validate requested seats
-        for (Long seatId : request.getSeatIds()) {
+        for (CreateReservationDto.TicketRequest ticketRequest : request.getTickets()) {
+            Long seatId = ticketRequest.getSeatId();
             if (takenSeatIds.contains(seatId)) {
                 throw new IllegalStateException("This seat " + seatId + " is already taken.");
             }
@@ -57,29 +58,36 @@ public class ReservationService {
         Reservation reservation = new Reservation();
         reservation.setStatus(ReservationStatus.PENDING);
         reservation.setCreatedAt(LocalDateTime.now());
-        reservation.setExpiresAt(LocalDateTime.now().plusMinutes(15)); // Reservation expires in 15 minutes
+        reservation.setExpiresAt(LocalDateTime.now().plusMinutes(15));
         reservation.setUser(user);
 
-        // Calculate total price
-        double totalPrice = seance.getTicketPrice() * request.getSeatIds().size();
-        reservation.setTotalPrice(totalPrice);
-
-        // Create Tickets
+        // Calculate total price and create tickets
         List<Ticket> tickets = new ArrayList<>();
-        for (Long seatId : request.getSeatIds()) {
-            Seat seat = seatRepository.findById(seatId)
+        double totalPrice = 0;
+
+        for (CreateReservationDto.TicketRequest ticketRequest : request.getTickets()) {
+            Seat seat = seatRepository.findById(ticketRequest.getSeatId())
                     .orElseThrow(() -> new RuntimeException("Seat not found"));
+
+            TicketType ticketType = ticketRequest.getTicketType();
+
+            double price = ticketType == TicketType.REDUCED
+                    ? seance.getReducedTicketPrice()
+                    : seance.getRegularTicketPrice();
 
             Ticket ticket = new Ticket();
             ticket.setReservation(reservation);
             ticket.setSeance(seance);
             ticket.setSeat(seat);
-            ticket.setTicketType(TicketType.REGULAR);
-            ticket.setPrice(seance.getTicketPrice());
+            ticket.setTicketType(ticketType);
+            ticket.setPrice(price);
 
             tickets.add(ticket);
+            totalPrice += price;
         }
+
         reservation.setTickets(tickets);
+        reservation.setTotalPrice(totalPrice);
 
         // Save Reservation and Tickets
         Reservation savedReservation = reservationRepository.save(reservation);
@@ -95,6 +103,7 @@ public class ReservationService {
                 .seanceStartTime(seance.getStartTime())
                 .build();
     }
+
 
     /*
      * Method to pay for a reservation.

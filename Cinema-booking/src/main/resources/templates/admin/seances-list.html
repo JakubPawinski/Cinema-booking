@@ -40,7 +40,7 @@
           </td>
           <td class="p-4 text-white font-bold" th:text="${seance.movie.title}">Film</td>
           <td class="p-4" th:text="${seance.cinemaRoom.name}">Sala</td>
-          <td class="p-4" th:text="${seance.ticketPrice} + ' PLN'">25.0 PLN</td>
+          <td class="p-4" th:text="${seance.regularTicketPrice} + ' PLN'">25.0 PLN</td>
           <td class="p-4 text-center">
             <form th:action="@{/admin/seances/delete/{id}(id=${seance.id})}" method="post"
                   onsubmit="return confirm('Czy na pewno chcesz odwołać ten seans?');">

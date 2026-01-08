@@ -47,7 +47,8 @@ public class SeanceService {
                             .id(seance.getId())
                             .startTime(seance.getStartTime())
                             .endTime(seance.getEndTime())
-                            .ticketPrice(seance.getTicketPrice())
+                            .regularTicketPrice(seance.getRegularTicketPrice())
+                            .reducedTicketPrice(seance.getReducedTicketPrice())
                             .roomName(seance.getCinemaRoom().getName())
                             .movieId(seance.getMovie().getId())
                             .build())
@@ -81,7 +82,8 @@ public class SeanceService {
                 .id(seance.getId())
                 .startTime(seance.getStartTime())
                 .endTime(seance.getEndTime())
-                .ticketPrice(seance.getTicketPrice())
+                .regularTicketPrice(seance.getRegularTicketPrice())
+                .reducedTicketPrice(seance.getReducedTicketPrice())
                 .roomName(seance.getCinemaRoom().getName())
                 .movieId(seance.getMovie().getId())
                 .build();
@@ -146,7 +148,8 @@ public class SeanceService {
         // W bazie zapisujemy faktyczny koniec filmu (bez sprzątania), żeby wiedzieć kiedy się kończy seans dla widza
         seance.setEndTime(startTime.plusMinutes(movie.getDurationMin()));
 
-        seance.setTicketPrice(dto.getTicketPrice());
+        seance.setReducedTicketPrice(dto.getReducedTicketPrice());
+        seance.setRegularTicketPrice(dto.getRegularTicketPrice());
 
         seanceRepository.save(seance);
     }
