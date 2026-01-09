@@ -53,4 +53,6 @@ public class ReservationRestController {
         ReservationSummaryDto summary = reservationService.updateTicketType(id, ticketId, type);
         return ResponseEntity.ok(summary);
     }
+
+
 }

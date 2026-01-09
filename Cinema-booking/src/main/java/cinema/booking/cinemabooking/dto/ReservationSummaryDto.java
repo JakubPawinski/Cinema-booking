@@ -1,5 +1,6 @@
 package cinema.booking.cinemabooking.dto;
 
+import cinema.booking.cinemabooking.enums.ReservationStatus;
 import lombok.Builder;
 import lombok.Data;
 
@@ -11,7 +12,7 @@ public class ReservationSummaryDto {
     private Long id;
     private double totalPrice;
     private LocalDateTime expiresAt;
-    private String status;
+    private ReservationStatus status;
     private int ticketCount;
     private String movieTitle;
     private LocalDateTime seanceStartTime;

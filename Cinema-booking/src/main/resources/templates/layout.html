@@ -110,8 +110,7 @@
           <span class="font-semibold hidden sm:inline" sec:authentication="name">User</span>
         </button>
         <ul class="dropdown-menu dropdown-menu-dark bg-cinema-dark border border-gray-700 shadow-2xl mt-3">
-          <li><a class="dropdown-item hover:bg-cinema-accent" href="#">My Tickets</a></li>
-          <li><a class="dropdown-item hover:bg-cinema-accent" href="#">Settings</a></li>
+          <li><a class="dropdown-item hover:bg-cinema-accent" href="/profile">My profile</a></li>
           <li><hr class="dropdown-divider border-gray-700"></li>
           <li>
             <form th:action="@{/logout}" method="post">
