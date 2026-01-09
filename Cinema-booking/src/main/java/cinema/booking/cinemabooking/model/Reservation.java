@@ -13,6 +13,9 @@ public class Reservation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true)
+    private String reservationCode;
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 

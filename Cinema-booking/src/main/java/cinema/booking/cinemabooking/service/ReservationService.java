@@ -125,6 +125,10 @@ public class ReservationService {
         }
 
         reservation.setStatus(ReservationStatus.PAID);
+
+        //Generate unique code for reservation and tickets
+        reservation.setReservationCode(UUID.randomUUID().toString());
+
         for (Ticket ticket : reservation.getTickets()) {
             ticket.setTicketCode(UUID.randomUUID().toString());
         }

@@ -30,12 +30,33 @@
       transform: scale(1.1);
       border: 1px solid white;
     }
+    /* Animacja wejścia komunikatu */
+    @keyframes slideIn {
+      from { transform: translateY(-20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .animate-slide-in {
+      animation: slideIn 0.5s ease-out forwards;
+    }
   </style>
 </head>
 <body>
 
 <div layout:fragment="content">
   <div class="container mx-auto px-6 py-12">
+
+    <div id="success-alert" class="hidden mb-8 bg-green-900/40 border border-green-500 text-green-100 px-6 py-4 rounded-xl flex items-center shadow-lg animate-slide-in">
+      <div class="bg-green-500/20 p-3 rounded-full mr-4">
+        <i class="fas fa-check text-2xl text-green-400"></i>
+      </div>
+      <div>
+        <h3 class="font-bold text-lg text-white">Płatność zakończona sukcesem!</h3>
+        <p class="text-sm text-green-200 opacity-90">Twoje miejsca zostały zarezerwowane na stałe. Poniżej znajdziesz swoje bilety.</p>
+      </div>
+      <button onclick="this.parentElement.remove()" class="ml-auto text-green-300 hover:text-white">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
 
     <a href="/profile" class="inline-flex items-center text-gray-400 hover:text-white mb-6 transition no-underline">
       <i class="fas fa-arrow-left mr-2"></i> Wróć do listy
@@ -46,7 +67,17 @@
       <div class="lg:col-span-1 space-y-6">
 
         <div class="bg-cinema-dark p-6 rounded-xl border border-gray-800 shadow-xl">
-          <h2 class="text-xl font-bold text-white mb-4">Rezerwacja <span class="font-mono text-cinema-accent">#<span th:text="${reservation.id}">123</span></span></h2>
+
+          <div th:if="${reservation.reservationCode != null}" class="mb-6 text-center bg-black/30 p-4 rounded-lg border border-white/10">
+            <p class="text-xs text-gray-500 uppercase tracking-widest mb-1">Numer Rezerwacji</p>
+            <p class="text-xl md:text-2xl font-mono text-cinema-accent font-bold tracking-wide break-all"
+               th:text="${reservation.reservationCode}">550e8400...</p>
+          </div>
+
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-white">Szczegóły</h2>
+            <span class="font-mono text-gray-600 text-xs">ID: #<span th:text="${reservation.id}">123</span></span>
+          </div>
 
           <div class="space-y-3 text-sm">
             <div class="flex justify-between">
@@ -64,15 +95,21 @@
             <div class="border-t border-gray-700 my-2"></div>
             <div class="flex justify-between items-center">
               <span class="text-gray-500">Status:</span>
-              <span th:if="${reservation.status.name() == 'PAID'}" class="text-green-400 font-bold">OPŁACONA</span>
-              <span th:if="${reservation.status.name() == 'PENDING'}" class="text-yellow-400 font-bold">OCZEKUJE</span>
-              <span th:if="${reservation.status.name() == 'CANCELLED'}" class="text-red-400 font-bold">ANULOWANA</span>
+              <span th:if="${reservation.status.name() == 'PAID'}" class="text-green-400 font-bold flex items-center gap-2">
+                                <i class="fas fa-check-circle"></i> OPŁACONA
+                            </span>
+              <span th:if="${reservation.status.name() == 'PENDING'}" class="text-yellow-400 font-bold flex items-center gap-2">
+                                <i class="fas fa-clock"></i> OCZEKUJE
+                            </span>
+              <span th:if="${reservation.status.name() == 'CANCELLED'}" class="text-red-400 font-bold flex items-center gap-2">
+                                <i class="fas fa-times-circle"></i> ANULOWANA
+                            </span>
             </div>
           </div>
 
           <div th:if="${reservation.status.name() == 'PENDING'}" class="mt-6">
-            <a th:href="@{/booking/payment/{id}(id=${reservation.id})}" class="block w-full bg-green-600 hover:bg-green-700 text-white text-center py-2 rounded font-bold transition">
-              Dokończ płatność
+            <a th:href="@{/booking/payment/{id}(id=${reservation.id})}" class="block w-full bg-green-600 hover:bg-green-700 text-white text-center py-3 rounded font-bold transition shadow-lg hover:shadow-green-900/20 no-underline">
+              Dokończ płatność <i class="fas fa-arrow-right ml-2"></i>
             </a>
           </div>
         </div>
@@ -81,20 +118,20 @@
           <h3 class="text-white font-bold mb-4 border-l-4 border-cinema-accent pl-3">Twoje Bilety</h3>
 
           <div class="space-y-3">
-            <div th:each="ticket : ${reservation.tickets}" class="bg-black/40 p-3 rounded border border-gray-700 flex justify-between items-center">
+            <div th:each="ticket : ${reservation.tickets}" class="bg-black/40 p-3 rounded border border-gray-700 flex justify-between items-center group hover:border-gray-600 transition">
               <div class="flex items-center gap-3">
                 <div class="text-center">
-                  <div class="text-xs text-gray-500">RZĄD</div>
-                  <div class="font-bold text-white" th:text="${ticket.seat.rowNumber}">1</div>
+                  <div class="text-[10px] text-gray-500 uppercase tracking-wider">Rząd</div>
+                  <div class="font-bold text-white text-lg" th:text="${ticket.seat.rowNumber}">1</div>
                 </div>
                 <div class="text-center">
-                  <div class="text-xs text-gray-500">MIEJSCE</div>
+                  <div class="text-[10px] text-gray-500 uppercase tracking-wider">Miejsce</div>
                   <div class="font-bold text-cinema-accent text-lg" th:text="${ticket.seat.seatNumber}">5</div>
                 </div>
               </div>
               <div class="text-right">
-                <div class="text-xs font-bold text-gray-400 uppercase" th:text="${ticket.ticketType}">NORMALNY</div>
-                <div th:if="${ticket.ticketCode != null}" class="text-xs font-mono text-green-400 mt-1">
+                <div class="text-xs font-bold text-gray-400 uppercase tracking-wide" th:text="${ticket.ticketType}">NORMALNY</div>
+                <div th:if="${ticket.ticketCode != null}" class="text-xs font-mono text-green-400 mt-1 bg-green-900/20 px-2 py-1 rounded border border-green-900/30">
                   <i class="fas fa-qrcode mr-1"></i> <span th:text="${#strings.substring(ticket.ticketCode,0,8)}">CODE</span>...
                 </div>
               </div>
@@ -104,20 +141,22 @@
       </div>
 
       <div class="lg:col-span-2">
-        <div class="bg-gray-900 p-8 rounded-xl border border-gray-800 shadow-2xl h-full flex flex-col justify-center">
+        <div class="bg-gray-900 p-8 rounded-xl border border-gray-800 shadow-2xl h-full flex flex-col justify-center relative overflow-hidden">
 
-          <h3 class="text-center text-gray-400 text-sm uppercase tracking-widest mb-2">Plan Sali</h3>
-          <h2 class="text-center text-2xl font-bold text-white mb-8" th:text="${roomName}">Sala 1</h2>
+          <div class="absolute top-0 right-0 w-64 h-64 bg-purple-600/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
 
-          <div class="flex justify-center mb-8">
-            <div class="screen h-8 w-2/3 bg-white"></div>
+          <h3 class="text-center text-gray-400 text-sm uppercase tracking-widest mb-2 relative z-10">Plan Sali</h3>
+          <h2 class="text-center text-2xl font-bold text-white mb-8 relative z-10" th:text="${roomName}">Sala 1</h2>
+
+          <div class="flex justify-center mb-8 relative z-10">
+            <div class="screen h-8 w-2/3 bg-white shadow-[0_20px_50px_rgba(255,255,255,0.1)]"></div>
           </div>
 
-          <div id="seat-grid" class="flex flex-col items-center gap-2 mb-8">
+          <div id="seat-grid" class="flex flex-col items-center gap-2 mb-8 relative z-10">
             <div class="text-cinema-accent animate-pulse">Ładowanie mapy...</div>
           </div>
 
-          <div class="flex justify-center gap-6 text-xs text-gray-500 mt-auto">
+          <div class="flex justify-center gap-6 text-xs text-gray-500 mt-auto relative z-10">
             <div class="flex items-center gap-2"><div class="w-3 h-3 bg-yellow-500 rounded"></div> Twoje miejsce</div>
             <div class="flex items-center gap-2"><div class="w-3 h-3 bg-red-900 rounded opacity-50"></div> Zajęte przez innych</div>
           </div>
@@ -130,6 +169,18 @@
   <script th:inline="javascript">
     const seanceId = /*[[${seanceId}]]*/ 0;
 
+    // --- OBSŁUGA KOMUNIKATU SUKCESU ---
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success') === 'true') {
+      const alertBox = document.getElementById('success-alert');
+      if(alertBox) alertBox.classList.remove('hidden');
+
+      // Wyczyść URL (usuń ?success=true), żeby po odświeżeniu komunikat zniknął
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+    }
+    // ----------------------------------
+
     // Generujemy listę ID moich miejsc z Thymeleaf do JS
     /*[+
     const mySeatIds = [
@@ -138,7 +189,6 @@
         [/]
     ];
     +]*/
-    // Fallback dla pustej listy (gdyby coś poszło nie tak)
     const safeMySeatIds = (typeof mySeatIds !== 'undefined') ? mySeatIds : [];
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -147,7 +197,6 @@
 
     async function fetchSeats() {
       try {
-        // Używamy tego samego API co przy rezerwacji
         const response = await fetch(`/api/v1/seances/${seanceId}/seats`);
         const seats = await response.json();
         renderGrid(seats);
@@ -161,39 +210,31 @@
       const grid = document.getElementById('seat-grid');
       grid.innerHTML = '';
 
-      // Grupowanie wierszy
       const rows = {};
       seats.forEach(seat => {
         if (!rows[seat.rowNumber]) rows[seat.rowNumber] = [];
         rows[seat.rowNumber].push(seat);
       });
 
-      // Renderowanie
       Object.keys(rows).forEach(rowNum => {
         const rowDiv = document.createElement('div');
         rowDiv.className = 'flex gap-2 items-center';
 
         rows[rowNum].forEach(seat => {
           const seatDiv = document.createElement('div');
-
-          // Logika klas:
           let className = 'seat flex items-center justify-center ';
 
           if (safeMySeatIds.includes(seat.id)) {
-            // To jest moje miejsce!
             className += 'mine';
           } else if (seat.occupied) {
-            // Zajęte przez kogoś innego
             className += 'occupied';
           } else {
-            // Wolne (tło mapy)
             className += 'available';
           }
 
           seatDiv.className = className;
           seatDiv.innerText = seat.seatNumber;
 
-          // Opcjonalnie: Tooltip
           if (safeMySeatIds.includes(seat.id)) {
             seatDiv.title = "Twój bilet";
           }

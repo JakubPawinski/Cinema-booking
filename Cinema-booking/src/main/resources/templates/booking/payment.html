@@ -223,19 +223,36 @@
 
         // --- 4. PŁATNOŚĆ ---
         async function payReservation() {
-            if(!confirm("Symulacja: Potwierdź płatność (Mock).")) return;
+            if(!confirm("Symulacja: Potwierdź płatność.")) return;
+
+            // UI: Zablokuj przycisk, pokaż, że przetwarzasz
+            const payBtn = document.getElementById('pay-btn');
+            const originalText = payBtn.innerText;
+            payBtn.disabled = true;
+            payBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Przetwarzanie...';
 
             try {
-                const response = await fetch(`/api/v1/reservations/pay?reservationId=${reservationId}`, { method: 'PUT' });
+                // Wywołanie backendu (PUT /pay)
+                // Endpoint jest w ReservationRestController
+                const response = await fetch(`/api/v1/reservations/pay?reservationId=${reservationId}`, {
+                    method: 'PUT'
+                });
+
                 if (response.ok) {
-                    alert("Dziękujemy! Płatność przyjęta.");
-                    window.location.href = "/profile"; // Przekierowanie do profilu/biletów
+                    // SUKCES: Przekierowanie do szczegółów rezerwacji (strona sukcesu)
+                    window.location.href = `/profile/reservation/${reservationId}?success=true`;
                 } else {
-                    const errorMsg = await response.text();
-                    alert("Błąd płatności: " + errorMsg);
+                    // Obsługa błędów (np. czas minął)
+                    const errorText = await response.text();
+                    alert("Błąd płatności: " + (errorText || "Spróbuj ponownie."));
+                    payBtn.disabled = false;
+                    payBtn.innerText = originalText;
                 }
             } catch (e) {
-                alert("Błąd sieci podczas płatności.");
+                console.error(e);
+                alert("Błąd sieci");
+                payBtn.disabled = false;
+                payBtn.innerText = originalText;
             }
         }
 
