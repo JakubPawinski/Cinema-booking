@@ -1,7 +1,7 @@
 package cinema.booking.cinemabooking.service;
 
-import cinema.booking.cinemabooking.dto.MovieDto;
-import cinema.booking.cinemabooking.dto.MovieRequestDto;
+import cinema.booking.cinemabooking.dto.response.MovieDto;
+import cinema.booking.cinemabooking.dto.request.MovieRequestDto;
 import cinema.booking.cinemabooking.model.Movie;
 import cinema.booking.cinemabooking.repository.MovieRepository;
 import lombok.RequiredArgsConstructor;

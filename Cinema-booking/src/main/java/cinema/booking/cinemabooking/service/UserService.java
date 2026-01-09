@@ -1,6 +1,6 @@
 package cinema.booking.cinemabooking.service;
 
-import cinema.booking.cinemabooking.dto.UserDto;
+import cinema.booking.cinemabooking.dto.request.UserDto;
 import cinema.booking.cinemabooking.enums.UserRole;
 import cinema.booking.cinemabooking.model.User;
 import cinema.booking.cinemabooking.repository.UserRepository;

@@ -71,7 +71,7 @@
           <div th:if="${reservation.reservationCode != null}" class="mb-6 text-center bg-black/30 p-4 rounded-lg border border-white/10">
             <p class="text-xs text-gray-500 uppercase tracking-widest mb-1">Numer Rezerwacji</p>
             <p class="text-xl md:text-2xl font-mono text-cinema-accent font-bold tracking-wide break-all"
-               th:text="${reservation.reservationCode}">550e8400...</p>
+               th:text="${reservation.reservationCode}">CODE</p>
           </div>
 
           <div class="flex justify-between items-center mb-4">
@@ -82,28 +82,31 @@
           <div class="space-y-3 text-sm">
             <div class="flex justify-between">
               <span class="text-gray-500">Data seansu:</span>
-              <span class="text-white" th:text="${#temporals.format(reservation.tickets[0].seance.startTime, 'dd.MM.yyyy HH:mm')}">Data</span>
+              <span class="text-white" th:if="${!reservation.tickets.empty}"
+                    th:text="${#temporals.format(reservation.tickets[0].seance.startTime, 'dd.MM.yyyy HH:mm')}">Data</span>
             </div>
             <div class="flex justify-between">
               <span class="text-gray-500">Film:</span>
-              <span class="text-white font-bold" th:text="${reservation.tickets[0].seance.movie.title}">Film</span>
+              <span class="text-white font-bold" th:if="${!reservation.tickets.empty}"
+                    th:text="${reservation.tickets[0].seance.movie.title}">Film</span>
             </div>
             <div class="flex justify-between">
               <span class="text-gray-500">Sala:</span>
-              <span class="text-white" th:text="${reservation.tickets[0].seance.cinemaRoom.name}">Sala</span>
+              <span class="text-white" th:if="${!reservation.tickets.empty}"
+                    th:text="${reservation.tickets[0].seance.cinemaRoom.name}">Sala</span>
             </div>
             <div class="border-t border-gray-700 my-2"></div>
             <div class="flex justify-between items-center">
               <span class="text-gray-500">Status:</span>
               <span th:if="${reservation.status.name() == 'PAID'}" class="text-green-400 font-bold flex items-center gap-2">
-                                <i class="fas fa-check-circle"></i> OPŁACONA
-                            </span>
+                  <i class="fas fa-check-circle"></i> OPŁACONA
+              </span>
               <span th:if="${reservation.status.name() == 'PENDING'}" class="text-yellow-400 font-bold flex items-center gap-2">
-                                <i class="fas fa-clock"></i> OCZEKUJE
-                            </span>
+                  <i class="fas fa-clock"></i> OCZEKUJE
+              </span>
               <span th:if="${reservation.status.name() == 'CANCELLED'}" class="text-red-400 font-bold flex items-center gap-2">
-                                <i class="fas fa-times-circle"></i> ANULOWANA
-                            </span>
+                  <i class="fas fa-times-circle"></i> ANULOWANA
+              </span>
             </div>
           </div>
 
@@ -153,7 +156,10 @@
           <div class="absolute top-0 right-0 w-64 h-64 bg-purple-600/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
 
           <h3 class="text-center text-gray-400 text-sm uppercase tracking-widest mb-2 relative z-10">Plan Sali</h3>
-          <h2 class="text-center text-2xl font-bold text-white mb-8 relative z-10" th:text="${roomName}">Sala 1</h2>
+
+          <h2 class="text-center text-2xl font-bold text-white mb-8 relative z-10"
+              th:if="${!reservation.tickets.empty}"
+              th:text="${reservation.tickets[0].seance.cinemaRoom.name}">Sala</h2>
 
           <div class="flex justify-center mb-8 relative z-10">
             <div class="screen h-8 w-2/3 bg-white shadow-[0_20px_50px_rgba(255,255,255,0.1)]"></div>
@@ -174,7 +180,9 @@
   </div>
 
   <script th:inline="javascript">
-    const seanceId = /*[[${seanceId}]]*/ 0;
+    // ZMIANA: Pobieramy ID seansu z pierwszego biletu rezerwacji
+    // Jeśli lista biletów pusta (edge case), ustawiamy 0
+    const seanceId = /*[[${reservation.tickets.empty ? 0 : reservation.tickets[0].seance.id}]]*/ 0;
 
     // --- OBSŁUGA KOMUNIKATU SUKCESU ---
     const urlParams = new URLSearchParams(window.location.search);
@@ -182,7 +190,7 @@
       const alertBox = document.getElementById('success-alert');
       if(alertBox) alertBox.classList.remove('hidden');
 
-      // Wyczyść URL (usuń ?success=true), żeby po odświeżeniu komunikat zniknął
+      // Wyczyść URL
       const newUrl = window.location.pathname;
       window.history.replaceState({}, document.title, newUrl);
     }

@@ -1,8 +1,8 @@
 package cinema.booking.cinemabooking.service;
 
 import cinema.booking.cinemabooking.dao.SalesDao;
-import cinema.booking.cinemabooking.dto.DailySalesDto;
-import cinema.booking.cinemabooking.dto.SalesReportDto;
+import cinema.booking.cinemabooking.dto.report.DailySalesDto;
+import cinema.booking.cinemabooking.dto.report.SalesReportDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;

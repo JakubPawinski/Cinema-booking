@@ -1,6 +1,9 @@
 package cinema.booking.cinemabooking.service;
 
-import cinema.booking.cinemabooking.dto.*;
+import cinema.booking.cinemabooking.dto.request.SeanceRequestDto;
+import cinema.booking.cinemabooking.dto.response.MovieWithSeancesDto;
+import cinema.booking.cinemabooking.dto.response.SeanceDto;
+import cinema.booking.cinemabooking.dto.response.SeatDto;
 import cinema.booking.cinemabooking.model.*;
 import cinema.booking.cinemabooking.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -103,7 +106,7 @@ public class SeanceService {
                 .toList();
 
         return allSeats.stream()
-                .map(seat -> cinema.booking.cinemabooking.dto.SeatDto.builder()
+                .map(seat -> SeatDto.builder()
                         .id(seat.getId())
                         .rowNumber(seat.getRowNumber())
                         .seatNumber(seat.getSeatNumber())

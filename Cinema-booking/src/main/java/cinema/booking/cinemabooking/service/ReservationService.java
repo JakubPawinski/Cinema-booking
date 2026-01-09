@@ -1,7 +1,7 @@
 package cinema.booking.cinemabooking.service;
 
-import cinema.booking.cinemabooking.dto.CreateReservationDto;
-import cinema.booking.cinemabooking.dto.ReservationSummaryDto;
+import cinema.booking.cinemabooking.dto.request.CreateReservationDto;
+import cinema.booking.cinemabooking.dto.response.ReservationSummaryDto;
 import cinema.booking.cinemabooking.enums.ReservationStatus;
 import cinema.booking.cinemabooking.enums.TicketType;
 import cinema.booking.cinemabooking.model.*;
@@ -29,6 +29,7 @@ public class ReservationService {
     private final SeatRepository seatRepository;
     private final UserRepository userRepository;
     private final ReservationRepository reservationRepository;
+    private final PdfTicketService pdfTicketService;
 
     @Transactional
     public ReservationSummaryDto createReservation(CreateReservationDto request, String username) {
@@ -331,4 +332,16 @@ public class ReservationService {
 
         return mapToSummary(reservation);
     }
+
+    @Transactional(readOnly = true)
+    public java.io.ByteArrayInputStream generatePdfForReservation(Long reservationId, String username) {
+        Reservation reservation = getReservationDetails(reservationId, username);
+
+        if (reservation.getStatus() != ReservationStatus.PAID) {
+            throw new IllegalStateException("Nie można wygenerować biletu dla nieopłaconej rezerwacji.");
+        }
+
+        return pdfTicketService.generateReservationPdf(reservation);
+    }
+
 }

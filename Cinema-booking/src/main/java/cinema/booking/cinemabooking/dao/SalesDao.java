@@ -1,9 +1,9 @@
 package cinema.booking.cinemabooking.dao;
 
-import cinema.booking.cinemabooking.dto.DailySalesDto;
+import cinema.booking.cinemabooking.dto.report.DailySalesDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
-import cinema.booking.cinemabooking.dto.SalesReportDto;
+import cinema.booking.cinemabooking.dto.report.SalesReportDto;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
