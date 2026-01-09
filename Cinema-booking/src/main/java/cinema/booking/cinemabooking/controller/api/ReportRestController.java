@@ -3,6 +3,7 @@ package cinema.booking.cinemabooking.controller.api;
 import cinema.booking.cinemabooking.service.CsvExportService;
 import cinema.booking.cinemabooking.service.ReportService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -12,34 +13,50 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * REST API controller for reports
+ */
 @RestController
 @RequestMapping("/api/v1/reports")
 @RequiredArgsConstructor
+@Slf4j
 public class ReportRestController {
 
     private final ReportService reportService;
     private final CsvExportService csvExportService;
 
-    // Endpoint: Pobierz CSV sprzedaży dziennej
+    /**
+     * Downloads daily sales report as CSV.
+     * @return CSV file containing daily sales report
+     */
     @GetMapping("/daily/csv")
     public ResponseEntity<Resource> downloadDailyReportCsv() {
+        log.info("API: Downloading daily sales report as CSV");
+
+        // Fetching daily sales report data
         var data = reportService.getDailySalesReport();
         var file = new InputStreamResource(csvExportService.generateDailySalesCsv(data));
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=sprzedaz_dzienna.csv")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=daily_sales_report.csv")
                 .contentType(MediaType.parseMediaType("text/csv"))
                 .body(file);
     }
 
-    // Endpoint: Pobierz CSV sprzedaży wg filmów
+    /**
+     * Downloads movie sales report as CSV
+     * @return CSV file containing movie sales report
+     */
     @GetMapping("/movies/csv")
     public ResponseEntity<Resource> downloadMovieReportCsv() {
+        log.info("API: Downloading movie sales report as CSV");
+
+        // Fetching movie sales report data
         var data = reportService.getSalesReport();
         var file = new InputStreamResource(csvExportService.generateMovieSalesCsv(data));
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=sprzedaz_filmy.csv")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=movie_sales_report.csv")
                 .contentType(MediaType.parseMediaType("text/csv"))
                 .body(file);
     }

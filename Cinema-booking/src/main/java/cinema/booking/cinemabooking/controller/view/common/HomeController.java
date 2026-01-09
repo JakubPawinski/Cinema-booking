@@ -1,15 +1,20 @@
-package cinema.booking.cinemabooking.controller.view;
+package cinema.booking.cinemabooking.controller.view.common;
 
-import cinema.booking.cinemabooking.service.SeanceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
+/**
+ * View controller for home page
+ */
 @Controller
 @RequiredArgsConstructor
-public class HomeViewController {
-    private final SeanceService seanceService;
+public class HomeController {
 
+    /**
+     * Display home page
+     * @return home view
+     */
     @GetMapping("/")
     public String homeView() {
         return "index";

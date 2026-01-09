@@ -1,9 +1,11 @@
-package cinema.booking.cinemabooking.controller.view;
+package cinema.booking.cinemabooking.controller.view.admin;
 
 import cinema.booking.cinemabooking.dto.response.MovieDto;
 import cinema.booking.cinemabooking.dto.request.MovieRequestDto;
+import cinema.booking.cinemabooking.mapper.MovieMapper;
 import cinema.booking.cinemabooking.service.MovieService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -18,14 +20,24 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 @RequestMapping("/admin/movies")
 @RequiredArgsConstructor
-public class AdminMovieViewController {
+@Slf4j
+public class AdminMovieController {
     private final MovieService movieService;
+    private final MovieMapper movieMapper;
 
+    /**
+     * List movies with pagination
+     * @param model Spring MVC model
+     * @param page Page number (default 0)
+     * @param size Page size (default 10)
+     * @return movies list view
+     */
     @GetMapping
     public String listMovies(Model model,
                              @RequestParam(defaultValue = "0") int page,
                              @RequestParam(defaultValue = "10") int size) {
 
+        // Create pageable with sorting by ID descending
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
         Page<MovieDto> moviePage = movieService.getAllMovies(pageable);
 
@@ -33,54 +45,71 @@ public class AdminMovieViewController {
         return "admin/movies-list";
     }
 
+    /**
+     * Display form to add a new movie
+     * @param model Spring MVC model
+     * @return movie form view
+     */
     @GetMapping("/add")
     public String addMovieForm(Model model) {
         model.addAttribute("movie", new MovieRequestDto());
-        model.addAttribute("isEdit", false);
+        model.addAttribute("isEdit", false); // Flag to toggle UI elements
         return "admin/movie-form";
     }
 
+    /**
+     * Handle submission of new movie
+     * @param dto MovieRequestDto with form data
+     * @return redirect to movies list
+     */
     @PostMapping("/add")
     public String addMovie(@ModelAttribute("movie") MovieRequestDto dto) {
         movieService.addMovie(dto);
         return "redirect:/admin/movies"; // Przekierowanie po sukcesie
     }
 
-    // 4. FORMULARZ EDYCJI (Pobieramy dane filmu)
+    /**
+     * Display form to edit an existing movie
+     * @param id Movie ID
+     * @param model Spring MVC model
+     * @return movie form view
+     */
     @GetMapping("/edit/{id}")
     public String editMovieForm(@PathVariable Long id, Model model) {
+        // Fetch existing movie data
         MovieDto movieDto = movieService.getMovieById(id);
 
-        // Mapujemy Dto na RequestDto (żeby formularz pasował)
-        // W prawdziwym projekcie użyłbyś do tego mappera, tu zrobimy ręcznie dla uproszczenia
-        MovieRequestDto requestDto = new MovieRequestDto();
-        requestDto.setTitle(movieDto.getTitle());
-        requestDto.setDescription(movieDto.getDescription());
-        requestDto.setGenre(movieDto.getGenre());
-        requestDto.setDurationMin(movieDto.getDurationMin());
-        requestDto.setImageUrl(movieDto.getImageUrl());
-        requestDto.setTrailerUrl(movieDto.getTrailerUrl());
-        requestDto.setDirector(movieDto.getDirector());
-        requestDto.setMainCast(movieDto.getMainCast());
-        requestDto.setAgeRating(movieDto.getAgeRating());
+        // Map to request DTO
+        MovieRequestDto requestDto = movieMapper.toRequestDto(movieDto);
 
         model.addAttribute("movie", requestDto);
-        model.addAttribute("movieId", id); // Potrzebne do action URL
+        model.addAttribute("movieId", id);
         model.addAttribute("isEdit", true);
 
         return "admin/movie-form";
     }
 
-    // 5. ZAPISYWANIE ZMIAN (POST - Update)
+    /**
+     * Handle submission of edited movie
+     * @param id Movie ID
+     * @param dto MovieRequestDto with form data
+     * @return redirect to movies list
+     */
     @PostMapping("/edit/{id}")
     public String updateMovie(@PathVariable Long id, @ModelAttribute("movie") MovieRequestDto dto) {
+        log.info("Admin: Updating movie ID: {}", id);
         movieService.updateMovie(id, dto);
         return "redirect:/admin/movies";
     }
 
-    // 6. USUWANIE (POST)
+    /**
+     * Handle deletion of a movie
+     * @param id Movie ID
+     * @return redirect to movies list
+     */
     @PostMapping("/delete/{id}")
     public String deleteMovie(@PathVariable Long id) {
+        log.info("Admin: Deleting movie ID: {}", id);
         movieService.deleteMovie(id);
         return "redirect:/admin/movies";
     }
