@@ -11,6 +11,9 @@ public class Ticket {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true)
+    private  String ticketCode;
+
     @Enumerated(EnumType.STRING)
     private TicketType ticketType;
 

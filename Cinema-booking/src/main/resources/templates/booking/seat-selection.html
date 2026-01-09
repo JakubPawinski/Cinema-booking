@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Wybór Miejsc</title>
+    <style>
+        .screen {
+            background: linear-gradient(to bottom, #fff, transparent);
+            opacity: 0.1;
+            transform: perspective(600px) rotateX(-20deg) scale(0.9);
+            box-shadow: 0 50px 40px rgba(255,255,255,0.1);
+        }
+        .seat {
+            width: 35px;
+            height: 35px;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .seat.available { background-color: #374151; } /* szary */
+        .seat.available:hover { background-color: #9333ea; transform: scale(1.1); } /* fiolet hover */
+        .seat.occupied { background-color: #991b1b; cursor: not-allowed; } /* czerwony */
+        .seat.selected { background-color: #fbbf24; color: black; box-shadow: 0 0 10px #fbbf24; } /* złoty */
+    </style>
+</head>
+<body>
+
+<div layout:fragment="content">
+    <div class="container mx-auto px-6 py-12">
+
+        <div class="text-center mb-8">
+            <h2 class="text-2xl font-bold text-white mb-2" th:text="${seance.roomName}">Sala Kinowa</h2>
+            <p class="text-gray-400">Wybierz miejsca na film.</p>
+        </div>
+
+        <div class="flex justify-center gap-6 mb-12 text-sm text-gray-300">
+            <div class="flex items-center gap-2"><div class="w-4 h-4 bg-gray-700 rounded"></div> Wolne</div>
+            <div class="flex items-center gap-2"><div class="w-4 h-4 bg-red-800 rounded"></div> Zajęte</div>
+            <div class="flex items-center gap-2"><div class="w-4 h-4 bg-yellow-500 rounded"></div> Twój wybór</div>
+        </div>
+
+        <div class="flex justify-center mb-8">
+            <div class="screen h-12 w-2/3 bg-white"></div>
+        </div>
+
+        <div id="seat-grid" class="flex flex-col items-center gap-2 mb-12">
+            <div class="text-cinema-accent animate-pulse">Ładowanie sali...</div>
+        </div>
+
+        <div class="fixed bottom-0 left-0 w-full bg-cinema-dark border-t border-gray-800 p-4 shadow-2xl">
+            <div class="container mx-auto flex justify-between items-center">
+                <div class="text-white">
+                    Wybrano miejsc: <span id="count" class="text-cinema-gold font-bold text-xl">0</span>
+                </div>
+
+                <form action="/booking/summary" method="post" id="booking-form">
+                    <input type="hidden" name="seanceId" th:value="${seance.id}">
+                    <div id="selected-seats-inputs"></div>
+
+                    <button type="submit" id="next-btn" disabled
+                            class="bg-cinema-accent hover:bg-cinema-accentHover disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-3 rounded font-bold transition">
+                        Dalej <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <script th:inline="javascript">
+        const seanceId = /*[[${seance.id}]]*/ 0;
+        let selectedSeats = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchSeats();
+        });
+
+        async function fetchSeats() {
+            try {
+                const response = await fetch(`/api/v1/seances/${seanceId}/seats`);
+                const seats = await response.json();
+                renderGrid(seats);
+            } catch (e) {
+                console.error(e);
+                document.getElementById('seat-grid').innerHTML = '<p class="text-red-500">Błąd ładowania sali.</p>';
+            }
+        }
+
+        function renderGrid(seats) {
+            const grid = document.getElementById('seat-grid');
+            grid.innerHTML = '';
+
+            // Grupujemy miejsca po rzędach
+            // Zakładamy, że seats są posortowane po rzędach, jeśli nie - trzeba posortować
+            const rows = {};
+            seats.forEach(seat => {
+                if (!rows[seat.rowNumber]) rows[seat.rowNumber] = [];
+                rows[seat.rowNumber].push(seat);
+            });
+
+            // Renderujemy rzędy
+            Object.keys(rows).forEach(rowNum => {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'flex gap-2 items-center';
+
+                // Numer rzędu
+                const rowLabel = document.createElement('span');
+                rowLabel.className = 'text-gray-500 w-6 text-right mr-2 text-xs';
+                rowLabel.innerText = rowNum;
+                rowDiv.appendChild(rowLabel);
+
+                // Miejsca w rzędzie
+                rows[rowNum].forEach(seat => {
+                    const seatDiv = document.createElement('div');
+                    seatDiv.className = `seat flex items-center justify-center text-xs ${seat.occupied ? 'occupied' : 'available'}`;
+                    seatDiv.innerText = seat.seatNumber;
+
+                    if (!seat.occupied) {
+                        seatDiv.onclick = () => toggleSeat(seatDiv, seat.id);
+                    }
+
+                    rowDiv.appendChild(seatDiv);
+                });
+
+                grid.appendChild(rowDiv);
+            });
+        }
+
+        function toggleSeat(element, seatId) {
+            if (selectedSeats.includes(seatId)) {
+                selectedSeats = selectedSeats.filter(id => id !== seatId);
+                element.classList.remove('selected');
+            } else {
+                selectedSeats.push(seatId);
+                element.classList.add('selected');
+            }
+            updateUI();
+        }
+
+        function updateUI() {
+            // Licznik
+            document.getElementById('count').innerText = selectedSeats.length;
+
+            // Guzik Dalej
+            document.getElementById('next-btn').disabled = selectedSeats.length === 0;
+
+            // Ukryte inputy do formularza
+            const inputsContainer = document.getElementById('selected-seats-inputs');
+            inputsContainer.innerHTML = '';
+            selectedSeats.forEach(id => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'selectedSeatIds'; // To wiąże się z List<Long> w kontrolerze
+                input.value = id;
+                inputsContainer.appendChild(input);
+            });
+        }
+    </script>
+</div>
+</body>
+</html>

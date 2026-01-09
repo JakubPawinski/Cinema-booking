@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+  <title>Podsumowanie Rezerwacji</title>
+</head>
+<body>
+
+<div layout:fragment="content">
+  <div class="container mx-auto px-6 py-12 max-w-4xl">
+
+    <h1 class="text-3xl font-bold font-serif text-white mb-8 border-l-4 border-cinema-accent pl-4">TWOJE BILETY</h1>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+      <div class="lg:col-span-2 space-y-4">
+        <div th:each="seat : ${seats}" class="bg-cinema-dark p-4 rounded-xl border border-gray-800 flex justify-between items-center seat-row"
+             th:data-seat-id="${seat.id}">
+
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded bg-gray-800 flex items-center justify-center text-cinema-accent font-bold">
+              <span th:text="${seat.rowNumber}">1</span>-<span th:text="${seat.seatNumber}">5</span>
+            </div>
+            <div>
+              <p class="text-white font-bold">Rząd <span th:text="${seat.rowNumber}"></span>, Miejsce <span th:text="${seat.seatNumber}"></span></p>
+              <p class="text-xs text-gray-500">Miejsce standardowe</p>
+            </div>
+          </div>
+
+          <select class="ticket-type-select bg-black border border-gray-700 text-white rounded p-2 text-sm focus:border-cinema-accent focus:outline-none"
+                  th:data-price-regular="${seance.regularTicketPrice}"
+                  th:data-price-reduced="${seance.reducedTicketPrice}">
+            <option value="REGULAR" th:text="'Normalny - ' + ${seance.regularTicketPrice} + ' zł'">Normalny</option>
+            <option value="REDUCED" th:text="'Ulgowy - ' + ${seance.reducedTicketPrice} + ' zł'">Ulgowy</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="bg-gray-900 p-6 rounded-xl border border-gray-800 h-fit">
+        <h3 class="text-xl text-white font-bold mb-4">Do zapłaty</h3>
+
+        <div class="flex justify-between text-gray-400 mb-2">
+          <span>Bilety:</span>
+          <span id="total-count">0</span>
+        </div>
+
+        <div class="flex justify-between text-white text-2xl font-bold mb-6 border-t border-gray-800 pt-4">
+          <span>Suma:</span>
+          <span id="total-price">0.00 zł</span>
+        </div>
+
+        <button id="confirm-btn" onclick="createReservation()"
+                class="w-full bg-cinema-accent hover:bg-cinema-accentHover text-white py-3 rounded font-bold transition shadow-lg flex justify-center items-center gap-2">
+          <span id="btn-text">Rezerwuję i płacę</span>
+          <div id="btn-loader" class="hidden animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
+        </button>
+
+        <p id="error-msg" class="text-red-500 text-sm mt-2 text-center hidden"></p>
+      </div>
+    </div>
+  </div>
+
+  <script th:inline="javascript">
+    const seanceId = /*[[${seance.id}]]*/ 0;
+
+    document.addEventListener('DOMContentLoaded', calculateTotal);
+
+    // Nasłuchuj zmian w dropdownach
+    document.querySelectorAll('.ticket-type-select').forEach(select => {
+      select.addEventListener('change', calculateTotal);
+    });
+
+    function calculateTotal() {
+      let total = 0;
+      let count = 0;
+
+      document.querySelectorAll('.ticket-type-select').forEach(select => {
+        const type = select.value; // REGULAR lub REDUCED
+        const price = type === 'REGULAR'
+                ? parseFloat(select.dataset.priceRegular)
+                : parseFloat(select.dataset.priceReduced);
+        total += price;
+        count++;
+      });
+
+      document.getElementById('total-price').innerText = total.toFixed(2) + ' zł';
+      document.getElementById('total-count').innerText = count;
+    }
+
+    async function createReservation() {
+      const btn = document.getElementById('confirm-btn');
+      const loader = document.getElementById('btn-loader');
+      const text = document.getElementById('btn-text');
+      const errorMsg = document.getElementById('error-msg');
+
+      // UI Loading
+      btn.disabled = true;
+      text.classList.add('hidden');
+      loader.classList.remove('hidden');
+      errorMsg.classList.add('hidden');
+
+      // Budowanie JSONa (CreateReservationDto)
+      const tickets = [];
+      document.querySelectorAll('.seat-row').forEach(row => {
+        const seatId = row.dataset.seatId;
+        const ticketType = row.querySelector('.ticket-type-select').value;
+        tickets.push({ seatId: seatId, ticketType: ticketType });
+      });
+
+      const payload = {
+        seanceId: seanceId,
+        tickets: tickets
+      };
+
+      try {
+        // Wywołanie API POST /api/v1/reservations
+        const response = await fetch('/api/v1/reservations', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            // CSRF token jeśli Spring Security go wymaga (tu wyłączony w configu, ale warto pamiętać)
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          const errData = await response.json();
+          throw new Error(errData.message || 'Błąd rezerwacji');
+        }
+
+        const reservationSummary = await response.json();
+
+        // Przekierowanie do strony płatności
+        window.location.href = `/booking/payment/${reservationSummary.id}`;
+
+      } catch (error) {
+        console.error(error);
+        errorMsg.innerText = error.message;
+        errorMsg.classList.remove('hidden');
+
+        // Reset UI
+        btn.disabled = false;
+        text.classList.remove('hidden');
+        loader.classList.add('hidden');
+      }
+    }
+  </script>
+</div>
+</body>
+</html>

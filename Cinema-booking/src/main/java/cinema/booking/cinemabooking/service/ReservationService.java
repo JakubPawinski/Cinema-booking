@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 
@@ -71,9 +72,11 @@ public class ReservationService {
 
             TicketType ticketType = ticketRequest.getTicketType();
 
-            double price = ticketType == TicketType.REDUCED
-                    ? seance.getReducedTicketPrice()
-                    : seance.getRegularTicketPrice();
+//            double price = ticketType == TicketType.REDUCED
+//                    ? seance.getReducedTicketPrice()
+//                    : seance.getRegularTicketPrice();
+
+            double price = getTicketPrice(seance, ticketType);
 
             Ticket ticket = new Ticket();
             ticket.setReservation(reservation);
@@ -128,6 +131,12 @@ public class ReservationService {
 
         // Update reservation status to PAID
         reservation.setStatus(ReservationStatus.PAID);
+
+        // Generate unique ticket codes
+        for (Ticket ticket : reservation.getTickets()) {
+            ticket.setTicketCode(UUID.randomUUID().toString());
+        }
+
         reservationRepository.save(reservation);
     }
 
@@ -147,5 +156,100 @@ public class ReservationService {
                         .status(res.getStatus().name())
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    private double getTicketPrice(Seance seance, TicketType ticketType) {
+        return ticketType == TicketType.REDUCED
+                ? seance.getReducedTicketPrice()
+                : seance.getRegularTicketPrice();
+    }
+
+    @Transactional
+    public ReservationSummaryDto removeTicket(Long reservationId, Long ticketId) {
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new RuntimeException("Nie znaleziono rezerwacji"));
+
+        if (reservation.getStatus() != ReservationStatus.PENDING) {
+            throw new IllegalStateException("Nie można edytować opłaconej rezerwacji.");
+        }
+
+        Ticket ticketToRemove = reservation.getTickets().stream()
+                .filter(t -> t.getId().equals(ticketId))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Bilet nie istnieje w tej rezerwacji"));
+
+        // Usuń bilet
+        reservation.getTickets().remove(ticketToRemove);
+        ticketRepository.delete(ticketToRemove);
+
+        // Przelicz cenę całkowitą
+        recalculateReservationTotal(reservation);
+
+        return mapToSummary(reservation);
+    }
+
+    @Transactional
+    public ReservationSummaryDto updateTicketType(Long reservationId, Long ticketId, TicketType newType) {
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new RuntimeException("Nie znaleziono rezerwacji"));
+
+        if (reservation.getStatus() != ReservationStatus.PENDING) {
+            throw new IllegalStateException("Nie można edytować opłaconej rezerwacji.");
+        }
+
+        Ticket ticket = reservation.getTickets().stream()
+                .filter(t -> t.getId().equals(ticketId))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Bilet nie istnieje"));
+
+        // Aktualizacja typu i ceny
+        ticket.setTicketType(newType);
+        Seance seance = ticket.getSeance();
+
+
+        ticket.setPrice(getTicketPrice(seance, newType));
+
+        ticketRepository.save(ticket);
+
+        // Przelicz cenę całkowitą rezerwacji
+        recalculateReservationTotal(reservation);
+
+        return mapToSummary(reservation);
+    }
+
+    private void recalculateReservationTotal(Reservation reservation) {
+        double total = reservation.getTickets().stream()
+                .mapToDouble(Ticket::getPrice)
+                .sum();
+        reservation.setTotalPrice(total);
+        reservationRepository.save(reservation);
+    }
+
+    private ReservationSummaryDto mapToSummary(Reservation r) {
+        // Jeśli usunięto wszystkie bilety, można anulować rezerwację, ale tu zwracamy pustą
+        String title = r.getTickets().isEmpty() ? "Brak biletów" : r.getTickets().get(0).getSeance().getMovie().getTitle();
+        LocalDateTime time = r.getTickets().isEmpty() ? null : r.getTickets().get(0).getSeance().getStartTime();
+
+        return ReservationSummaryDto.builder()
+                .id(r.getId())
+                .status(r.getStatus().name())
+                .totalPrice(r.getTotalPrice())
+                .expiresAt(r.getExpiresAt())
+                .ticketCount(r.getTickets().size())
+                .movieTitle(title)
+                .seanceStartTime(time)
+                .build();
+    }
+
+    public void cancelReservation(Long reservationId) {
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new RuntimeException("Reservation not found"));
+
+        if (reservation.getStatus() == ReservationStatus.PAID) {
+            throw new IllegalStateException("Cannot cancel a paid reservation.");
+        }
+
+        reservation.setStatus(ReservationStatus.CANCELLED);
+        reservationRepository.save(reservation);
     }
 }

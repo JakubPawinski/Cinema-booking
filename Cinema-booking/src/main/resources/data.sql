@@ -62,4 +62,50 @@ VALUES
      '18+')
 ON CONFLICT DO NOTHING;
 
-INSERT INTO cinema_room (name) VALUES ('Sala 1 - IMAX'), ('Sala 2 - Standard'), ('Sala 3 - VIP');
+-- 1. SALE KINOWE (Z wymuszonymi ID, abyśmy wiedzieli gdzie wstawiać miejsca)
+-- ID: 1 = IMAX, ID: 2 = Standard, ID: 3 = VIP
+
+INSERT INTO cinema_room (id, name) VALUES (1, 'Sala 1 - IMAX') ON CONFLICT (id) DO NOTHING;
+INSERT INTO cinema_room (id, name) VALUES (2, 'Sala 2 - Standard') ON CONFLICT (id) DO NOTHING;
+INSERT INTO cinema_room (id, name) VALUES (3, 'Sala 3 - VIP') ON CONFLICT (id) DO NOTHING;
+
+-- Reset sekwencji ID dla sal (opcjonalne, ale dobre dla Postgresa)
+-- ALTER SEQUENCE cinema_room_id_seq RESTART WITH 4;
+
+
+-- 2. MIEJSCA DLA SALI 1 (IMAX) - 10 Rzędów po 10 Miejsc (100 miejsc)
+-- Generowanie miejsc: Rząd 1
+INSERT INTO seat (cinema_room_id, row_number, seat_number) VALUES
+                                                               (1, 1, 1), (1, 1, 2), (1, 1, 3), (1, 1, 4), (1, 1, 5), (1, 1, 6), (1, 1, 7), (1, 1, 8), (1, 1, 9), (1, 1, 10);
+-- Rząd 2
+INSERT INTO seat (cinema_room_id, row_number, seat_number) VALUES
+                                                               (1, 2, 1), (1, 2, 2), (1, 2, 3), (1, 2, 4), (1, 2, 5), (1, 2, 6), (1, 2, 7), (1, 2, 8), (1, 2, 9), (1, 2, 10);
+-- Rząd 3
+INSERT INTO seat (cinema_room_id, row_number, seat_number) VALUES
+                                                               (1, 3, 1), (1, 3, 2), (1, 3, 3), (1, 3, 4), (1, 3, 5), (1, 3, 6), (1, 3, 7), (1, 3, 8), (1, 3, 9), (1, 3, 10);
+-- Rząd 4
+INSERT INTO seat (cinema_room_id, row_number, seat_number) VALUES
+                                                               (1, 4, 1), (1, 4, 2), (1, 4, 3), (1, 4, 4), (1, 4, 5), (1, 4, 6), (1, 4, 7), (1, 4, 8), (1, 4, 9), (1, 4, 10);
+-- Rząd 5
+INSERT INTO seat (cinema_room_id, row_number, seat_number) VALUES
+                                                               (1, 5, 1), (1, 5, 2), (1, 5, 3), (1, 5, 4), (1, 5, 5), (1, 5, 6), (1, 5, 7), (1, 5, 8), (1, 5, 9), (1, 5, 10);
+
+
+-- 3. MIEJSCA DLA SALI 2 (Standard) - 5 Rzędów po 8 Miejsc (40 miejsc)
+-- Rząd 1
+INSERT INTO seat (cinema_room_id, row_number, seat_number) VALUES (2, 1, 1), (2, 1, 2), (2, 1, 3), (2, 1, 4), (2, 1, 5), (2, 1, 6), (2, 1, 7), (2, 1, 8);
+-- Rząd 2
+INSERT INTO seat (cinema_room_id, row_number, seat_number) VALUES (2, 2, 1), (2, 2, 2), (2, 2, 3), (2, 2, 4), (2, 2, 5), (2, 2, 6), (2, 2, 7), (2, 2, 8);
+-- Rząd 3
+INSERT INTO seat (cinema_room_id, row_number, seat_number) VALUES (2, 3, 1), (2, 3, 2), (2, 3, 3), (2, 3, 4), (2, 3, 5), (2, 3, 6), (2, 3, 7), (2, 3, 8);
+-- Rząd 4
+INSERT INTO seat (cinema_room_id, row_number, seat_number) VALUES (2, 4, 1), (2, 4, 2), (2, 4, 3), (2, 4, 4), (2, 4, 5), (2, 4, 6), (2, 4, 7), (2, 4, 8);
+-- Rząd 5
+INSERT INTO seat (cinema_room_id, row_number, seat_number) VALUES (2, 5, 1), (2, 5, 2), (2, 5, 3), (2, 5, 4), (2, 5, 5), (2, 5, 6), (2, 5, 7), (2, 5, 8);
+
+
+-- 4. MIEJSCA DLA SALI 3 (VIP) - 3 Rzędy po 4 Miejsca (12 miejsc)
+INSERT INTO seat (cinema_room_id, row_number, seat_number) VALUES
+                                                               (3, 1, 1), (3, 1, 2), (3, 1, 3), (3, 1, 4),
+                                                               (3, 2, 1), (3, 2, 2), (3, 2, 3), (3, 2, 4),
+                                                               (3, 3, 1), (3, 3, 2), (3, 3, 3), (3, 3, 4);

@@ -207,7 +207,7 @@
                 movie.seances.forEach(s => {
                     const time = s.startTime.split('T')[1].substring(0, 5);
                     seancesHtml += `
-                        <a href="/seance/${s.id}"
+                        <a href="/booking/seance/${s.id}"
                            class="text-xs bg-gray-800 hover:bg-cinema-accent cursor-pointer transition px-3 py-1.5 rounded text-gray-300 hover:text-white border border-gray-700 font-mono no-underline">
                             ${time}
                         </a>`;
