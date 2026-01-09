@@ -53,6 +53,8 @@ public class ReservationRestController {
         ReservationSummaryDto summary = reservationService.updateTicketType(id, ticketId, type);
         return ResponseEntity.ok(summary);
     }
-
-
+    @PostMapping("/{id}/tickets")
+    public ResponseEntity<ReservationSummaryDto> addTicket(@PathVariable Long id, @RequestParam Long seatId) {
+        return ResponseEntity.ok(reservationService.addTicketToReservation(id, seatId));
+    }
 }

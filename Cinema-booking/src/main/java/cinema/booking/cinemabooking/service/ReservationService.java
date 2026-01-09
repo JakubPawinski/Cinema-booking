@@ -32,24 +32,41 @@ public class ReservationService {
 
     @Transactional
     public ReservationSummaryDto createReservation(CreateReservationDto request, String username) {
+        // 1. Pobierz podstawowe dane
         Seance seance = seanceRepository.findById(request.getSeanceId())
                 .orElseThrow(() -> new RuntimeException("Seance not found"));
 
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        // 2. ZBIERZ ID MIEJSC
+        List<Long> requestedSeatIds = request.getTickets().stream()
+                .map(CreateReservationDto.TicketRequest::getSeatId)
+                .toList();
+
+        // 3. BLOKADA (CRITICAL SECTION)
+        // Ta linia "zamraża" te miejsca w bazie danych.
+        // Jeśli ktoś inny próbuje je teraz zarezerwować, jego transakcja CZEKA tutaj.
+        List<Seat> lockedSeats = seatRepository.findAllByIdInWithLock(requestedSeatIds);
+
+        if (lockedSeats.size() != requestedSeatIds.size()) {
+            throw new RuntimeException("Nieprawidłowe identyfikatory miejsc.");
+        }
+
+        // 4. SPRAWDZENIE DOSTĘPNOŚCI
+        // Teraz, gdy mamy pewność, że nikt inny nie modyfikuje tych miejsc, sprawdzamy bilety.
         List<Ticket> takenTickets = ticketRepository.findAllTakenTickets(seance.getId(), LocalDateTime.now());
         List<Long> takenSeatIds = takenTickets.stream()
                 .map(ticket -> ticket.getSeat().getId())
                 .toList();
 
-        for (CreateReservationDto.TicketRequest ticketRequest : request.getTickets()) {
-            Long seatId = ticketRequest.getSeatId();
+        for (Long seatId : requestedSeatIds) {
             if (takenSeatIds.contains(seatId)) {
-                throw new IllegalStateException("This seat " + seatId + " is already taken.");
+                throw new IllegalStateException("Miejsce o numerze ID " + seatId + " zostało już zajęte przez kogoś innego.");
             }
         }
 
+        // 5. TWORZENIE REZERWACJI (Standardowa logika)
         Reservation reservation = new Reservation();
         reservation.setStatus(ReservationStatus.PENDING);
         reservation.setCreatedAt(LocalDateTime.now());
@@ -59,9 +76,14 @@ public class ReservationService {
         List<Ticket> tickets = new ArrayList<>();
         double totalPrice = 0;
 
+        // Iterujemy po lockedSeats (bo to są już pobrane encje z bazy)
+        // Ale musimy dopasować TicketType z requestu
         for (CreateReservationDto.TicketRequest ticketRequest : request.getTickets()) {
-            Seat seat = seatRepository.findById(ticketRequest.getSeatId())
-                    .orElseThrow(() -> new RuntimeException("Seat not found"));
+            // Znajdź odpowiadające miejsce z listy zablokowanych
+            Seat seat = lockedSeats.stream()
+                    .filter(s -> s.getId().equals(ticketRequest.getSeatId()))
+                    .findFirst()
+                    .orElseThrow();
 
             TicketType ticketType = ticketRequest.getTicketType();
             double price = getTicketPrice(seance, ticketType);
@@ -79,10 +101,13 @@ public class ReservationService {
 
         reservation.setTickets(tickets);
         reservation.setTotalPrice(totalPrice);
+
+        // Zapis zwalnia blokadę automatycznie po zakończeniu transakcji
         Reservation savedReservation = reservationRepository.save(reservation);
 
         return mapToSummary(savedReservation);
     }
+
 
     @Transactional
     public void payForReservation(Long reservationId) {
@@ -256,5 +281,50 @@ public class ReservationService {
 
             System.out.println("Automatycznie anulowano " + expiredReservations.size() + " wygasłych rezerwacji.");
         }
+    }
+
+
+
+    // W ReservationService.java
+
+    @Transactional
+    public ReservationSummaryDto addTicketToReservation(Long reservationId, Long seatId) {
+        // 1. Pobierz rezerwację
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new RuntimeException("Rezerwacja nie istnieje"));
+
+        if (reservation.getStatus() != ReservationStatus.PENDING) {
+            throw new IllegalStateException("Rezerwacja nie jest aktywna.");
+        }
+
+        // 2. Pobierz i ZABLOKUJ miejsce (wymaga metody z @Lock w SeatRepository)
+        // Zakładam, że dodałeś findAllByIdInWithLock do SeatRepository w poprzednim kroku
+        Seat seat = seatRepository.findAllByIdInWithLock(List.of(seatId)).stream()
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Miejsce nie istnieje"));
+
+        // 3. Sprawdź dostępność (czy nie ma aktywnych biletów na to miejsce)
+        List<Ticket> takenTickets = ticketRepository.findAllTakenTickets(reservation.getTickets().get(0).getSeance().getId(), LocalDateTime.now());
+        boolean isTaken = takenTickets.stream().anyMatch(t -> t.getSeat().getId().equals(seatId));
+
+        if (isTaken) {
+            throw new IllegalStateException("Miejsce jest już zajęte.");
+        }
+
+        // 4. Stwórz bilet
+        Ticket ticket = new Ticket();
+        ticket.setReservation(reservation);
+        ticket.setSeance(reservation.getTickets().get(0).getSeance());
+        ticket.setSeat(seat);
+        ticket.setTicketType(TicketType.REGULAR); // Domyślnie normalny
+        ticket.setPrice(ticket.getSeance().getRegularTicketPrice());
+
+        ticketRepository.save(ticket);
+        reservation.getTickets().add(ticket);
+
+        // Przelicz sumę
+        recalculateReservationTotal(reservation);
+
+        return mapToSummary(reservation);
     }
 }

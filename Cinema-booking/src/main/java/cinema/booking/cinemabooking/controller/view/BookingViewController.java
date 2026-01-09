@@ -28,17 +28,6 @@ public class BookingViewController {
         return "booking/seat-selection";
     }
 
-    // KROK 2: Podsumowanie i Wybór Biletów (POST z formularza z kroku 1)
-    @PostMapping("/summary")
-    public String summary(@RequestParam Long seanceId, @RequestParam("selectedSeatIds") List<Long> seatIds, Model model) {
-        SeanceDto seance = seanceService.getSeanceDetails(seanceId);
-        List<Seat> seats = seatRepository.findAllById(seatIds); // Pobieramy detale wybranych miejsc
-
-        model.addAttribute("seance", seance);
-        model.addAttribute("seats", seats);
-        return "booking/summary";
-    }
-
     // KROK 3: Potwierdzenie / Płatność (Po utworzeniu rezerwacji przez API)
     @GetMapping("/payment/{reservationId}")
     public String payment(@PathVariable Long reservationId, Model model) {
