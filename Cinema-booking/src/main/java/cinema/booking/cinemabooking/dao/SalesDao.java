@@ -1,5 +1,6 @@
 package cinema.booking.cinemabooking.dao;
 
+import cinema.booking.cinemabooking.dto.DailySalesDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import cinema.booking.cinemabooking.dto.SalesReportDto;
@@ -31,6 +32,28 @@ public class SalesDao {
        \s""";
 
         return jdbcTemplate.query(sql, new SalesReportRowMapper());
+    }
+
+    public List<DailySalesDto> fetchDailySales() {
+        // CAST(r.created_at AS DATE) działa w H2 i PostgreSQL.
+        // Grupuje transakcje po samym dniu (ignorując godzinę).
+        String sql = """
+            SELECT 
+                CAST(r.created_at AS DATE) as sale_date,
+                COUNT(t.id) as tickets_sold,
+                COALESCE(SUM(t.price), 0) as total_revenue
+            FROM reservation r
+            JOIN ticket t ON t.reservation_id = r.id
+            WHERE r.status = 'PAID'
+            GROUP BY CAST(r.created_at AS DATE)
+            ORDER BY sale_date DESC
+        """;
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> new DailySalesDto(
+                rs.getDate("sale_date").toLocalDate(),
+                rs.getLong("tickets_sold"),
+                rs.getDouble("total_revenue")
+        ));
     }
 
     public int cancelExpiredReservations() {

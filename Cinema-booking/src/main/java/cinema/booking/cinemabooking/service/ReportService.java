@@ -1,6 +1,7 @@
 package cinema.booking.cinemabooking.service;
 
 import cinema.booking.cinemabooking.dao.SalesDao;
+import cinema.booking.cinemabooking.dto.DailySalesDto;
 import cinema.booking.cinemabooking.dto.SalesReportDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,10 @@ public class ReportService {
 
     public List<SalesReportDto> getSalesReport() {
         return salesDao.fetchSalesReport();
+    }
+
+    public List<DailySalesDto> getDailySalesReport() {
+        return salesDao.fetchDailySales();
     }
 
     public int bulkCancelExpiredReservations() {

@@ -4,6 +4,7 @@ import lombok.Data;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
 public class MovieRequestDto {
@@ -25,5 +26,8 @@ public class MovieRequestDto {
     private String ageRating;
 
     private String imageUrl;
+
+    private MultipartFile imageFile;
+
     private String trailerUrl;
 }

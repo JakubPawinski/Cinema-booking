@@ -3,6 +3,7 @@ package cinema.booking.cinemabooking.controller.view;
 import cinema.booking.cinemabooking.repository.MovieRepository;
 import cinema.booking.cinemabooking.repository.ReservationRepository;
 import cinema.booking.cinemabooking.repository.UserRepository;
+import cinema.booking.cinemabooking.service.ReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,6 +17,7 @@ public class AdminViewController {
     private final MovieRepository movieRepository;
     private final UserRepository userRepository;
     private final ReservationRepository reservationRepository;
+    private final ReportService reportService;
 
     @GetMapping
     public String adminDashboard(Model model) {
@@ -28,5 +30,14 @@ public class AdminViewController {
         model.addAttribute("reservationsCount", reservationsCount);
 
         return "admin/dashboard";
+    }
+
+    @GetMapping("/reports")
+    public String viewReports(Model model) {
+        // Pobieramy oba raporty: per Film i per Dzień
+        model.addAttribute("salesByMovie", reportService.getSalesReport());
+        model.addAttribute("salesByDate", reportService.getDailySalesReport());
+
+        return "admin/reports";
     }
 }
