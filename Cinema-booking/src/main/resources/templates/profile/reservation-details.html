@@ -112,6 +112,13 @@
               Dokończ płatność <i class="fas fa-arrow-right ml-2"></i>
             </a>
           </div>
+          <div th:if="${reservation.status.name() == 'PAID'}" class="mt-6">
+            <a th:href="@{/api/v1/reservations/{id}/pdf(id=${reservation.id})}"
+               target="_blank"
+               class="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-3 rounded font-bold transition shadow-lg no-underline group">
+              <i class="fas fa-file-pdf mr-2 group-hover:scale-110 transition"></i> Pobierz Bilety (PDF)
+            </a>
+          </div>
         </div>
 
         <div class="bg-cinema-dark p-6 rounded-xl border border-gray-800 shadow-xl">
