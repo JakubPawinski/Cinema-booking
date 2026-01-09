@@ -1,7 +1,7 @@
 package cinema.booking.cinemabooking.controller.view;
 
-import cinema.booking.cinemabooking.dto.MovieDto;
-import cinema.booking.cinemabooking.dto.MovieRequestDto;
+import cinema.booking.cinemabooking.dto.response.MovieDto;
+import cinema.booking.cinemabooking.dto.request.MovieRequestDto;
 import cinema.booking.cinemabooking.service.MovieService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -12,6 +12,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * View Controller for Admin Movie Management
+ */
 @Controller
 @RequestMapping("/admin/movies")
 @RequiredArgsConstructor

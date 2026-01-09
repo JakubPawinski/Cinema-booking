@@ -1,6 +1,6 @@
 package cinema.booking.cinemabooking.controller.view;
 
-import cinema.booking.cinemabooking.dto.SeanceRequestDto;
+import cinema.booking.cinemabooking.dto.request.SeanceRequestDto;
 import cinema.booking.cinemabooking.repository.CinemaRoomRepository;
 import cinema.booking.cinemabooking.repository.MovieRepository;
 import cinema.booking.cinemabooking.service.SeanceService;

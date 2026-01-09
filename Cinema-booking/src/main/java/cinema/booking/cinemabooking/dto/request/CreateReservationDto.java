@@ -1,4 +1,4 @@
-package cinema.booking.cinemabooking.dto;
+package cinema.booking.cinemabooking.dto.request;
 
 import cinema.booking.cinemabooking.enums.TicketType;
 import jakarta.validation.constraints.NotEmpty;

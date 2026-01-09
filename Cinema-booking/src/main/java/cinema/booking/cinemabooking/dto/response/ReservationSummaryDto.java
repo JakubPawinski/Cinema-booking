@@ -1,4 +1,4 @@
-package cinema.booking.cinemabooking.dto;
+package cinema.booking.cinemabooking.dto.response;
 
 import cinema.booking.cinemabooking.enums.ReservationStatus;
 import lombok.Builder;

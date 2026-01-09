@@ -1,7 +1,6 @@
 package cinema.booking.cinemabooking.controller.view;
 
-import cinema.booking.cinemabooking.dto.SeanceDto;
-import cinema.booking.cinemabooking.model.Seat;
+import cinema.booking.cinemabooking.dto.response.SeanceDto;
 import cinema.booking.cinemabooking.repository.ReservationRepository;
 import cinema.booking.cinemabooking.repository.SeatRepository;
 import cinema.booking.cinemabooking.service.SeanceService;
@@ -9,8 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Controller
 @RequestMapping("/booking")

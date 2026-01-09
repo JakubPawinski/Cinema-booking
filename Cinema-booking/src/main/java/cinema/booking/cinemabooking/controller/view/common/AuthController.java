@@ -1,6 +1,6 @@
 package cinema.booking.cinemabooking.controller.view;
 
-import cinema.booking.cinemabooking.dto.UserDto;
+import cinema.booking.cinemabooking.dto.request.UserDto;
 import cinema.booking.cinemabooking.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
