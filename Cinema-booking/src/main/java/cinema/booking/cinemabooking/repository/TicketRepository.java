@@ -9,10 +9,18 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 
+/**
+ * Repository interface for Ticket entity
+ */
 @Repository
 public interface TicketRepository extends JpaRepository<Ticket, Long> {
 
-    // Fetch all tickets for a specific seance that are either paid or pending but not expired
+    /**
+     * Fetch all tickets for a specific seance that are either paid or pending (not yet expired)
+     * @param seanceId the ID of the seance
+     * @param now the current date and time
+     * @return a list of taken tickets for the specified seance
+     */
     @Query("SELECT t FROM Ticket t " +
             "JOIN t.reservation r " +
             "WHERE t.seance.id = :seanceId " +
@@ -20,6 +28,10 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
     List<Ticket> findAllTakenTickets(@Param("seanceId") Long seanceId, @Param("now") LocalDateTime now);
 
 
-    // Fetch all tickets associated with a specific user's reservations
-    List<Ticket> findByReservation_User_Id(Long userId);
+    /**
+     * Find all tickets associated with reservations made by a specific user
+     * @param userId the ID of the user
+     * @return a list of tickets associated with the user's reservations
+     */
+    List<Ticket> findByReservationUserId(Long userId);
 }
