@@ -2,6 +2,7 @@ package cinema.booking.cinemabooking.service;
 
 import cinema.booking.cinemabooking.dto.response.MovieDto;
 import cinema.booking.cinemabooking.dto.request.MovieRequestDto;
+import cinema.booking.cinemabooking.exception.ResourceNotFoundException;
 import cinema.booking.cinemabooking.mapper.MovieMapper;
 import cinema.booking.cinemabooking.model.Movie;
 import cinema.booking.cinemabooking.repository.MovieRepository;
@@ -53,7 +54,7 @@ public class MovieService {
         Movie movie = movieRepository.findById(id)
                 .orElseThrow(() -> {
                     log.warn("Movie with ID {} not found", id);
-                    return new RuntimeException("Movie not found");
+                    return new ResourceNotFoundException("Movie not found");
                 });
 
         movieMapper.updateEntityFromDto(dto, movie);
@@ -86,7 +87,7 @@ public class MovieService {
         Movie movie = movieRepository.findById(id)
                 .orElseThrow(() -> {
                     log.warn("Movie with ID {} not found", id);
-                    return new RuntimeException("Movie not found");
+                    return new ResourceNotFoundException("Movie not found");
                 });
         return movieMapper.toDto(movie);
     }

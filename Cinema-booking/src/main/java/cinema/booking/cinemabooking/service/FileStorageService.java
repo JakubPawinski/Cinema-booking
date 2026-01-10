@@ -1,5 +1,6 @@
 package cinema.booking.cinemabooking.service;
 
+import cinema.booking.cinemabooking.exception.FileStorageException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -43,7 +44,7 @@ public class FileStorageService {
             log.info("Initialized file storage at {}", this.uploadPath.toString());
         } catch (IOException ex) {
             log.error("Could not create upload directory", ex);
-            throw new RuntimeException("Could not create upload directory", ex);
+            throw new FileStorageException("Could not create upload directory", ex);
         }
     }
 
@@ -74,7 +75,7 @@ public class FileStorageService {
         String extension = getFileExtension(originalFilename);
         if (!allowedExtensions.contains(extension.toLowerCase())) {
             log.warn("Upload attempt failed: Invalid extension '{}' for file '{}'", extension, originalFilename);
-            throw new IllegalArgumentException(
+            throw new FileStorageException(
                     "Invalid file extension (" + extension + "). Allowed: " + allowedExtensions);
         }
 
@@ -91,7 +92,7 @@ public class FileStorageService {
 
         } catch (IOException ex) {
             log.error("Error storing file '{}'", filename, ex);
-            throw new RuntimeException("Error storing file", ex);
+            throw new FileStorageException("Error storing file", ex);
         }
     }
 

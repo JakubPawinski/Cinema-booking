@@ -2,6 +2,7 @@ package cinema.booking.cinemabooking.service;
 
 import cinema.booking.cinemabooking.dto.request.UserDto;
 import cinema.booking.cinemabooking.enums.UserRole;
+import cinema.booking.cinemabooking.exception.UserAlreadyExistsException;
 import cinema.booking.cinemabooking.mapper.UserMapper;
 import cinema.booking.cinemabooking.model.User;
 import cinema.booking.cinemabooking.repository.UserRepository;
@@ -54,11 +55,11 @@ public class UserService {
     private void validateUserDto(UserDto dto) {
         if (userRepository.existsByUsername(dto.getUsername())) {
             log.warn("Username {} already exists", dto.getUsername());
-            throw new RuntimeException("Username already exists");
+            throw new UserAlreadyExistsException("Username already exists");
         }
         if (userRepository.existsByEmail(dto.getEmail())) {
             log.warn("Email {} already exists", dto.getEmail());
-            throw new RuntimeException("Email already exists");
+            throw new UserAlreadyExistsException("Email already exists");
         }
     }
 }

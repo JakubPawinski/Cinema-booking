@@ -4,6 +4,8 @@ import cinema.booking.cinemabooking.dto.request.SeanceRequestDto;
 import cinema.booking.cinemabooking.dto.response.MovieWithSeancesDto;
 import cinema.booking.cinemabooking.dto.response.SeanceDto;
 import cinema.booking.cinemabooking.dto.response.SeatDto;
+import cinema.booking.cinemabooking.exception.ResourceNotFoundException;
+import cinema.booking.cinemabooking.exception.SeanceConflictException;
 import cinema.booking.cinemabooking.mapper.MovieMapper;
 import cinema.booking.cinemabooking.mapper.SeanceMapper;
 import cinema.booking.cinemabooking.mapper.SeatMapper;
@@ -85,7 +87,7 @@ public class SeanceService {
         Seance seance = seanceRepository.findById(seanceId)
                 .orElseThrow(() -> {
                     log.warn("Seance with ID {} not found", seanceId);
-                    return new RuntimeException("Seance not found");
+                    return new ResourceNotFoundException("Seance not found");
                 });
 
         return seanceMapper.toDto(seance);
@@ -102,7 +104,7 @@ public class SeanceService {
 
         Seance seance = seanceRepository.findById(seanceId).orElseThrow(() -> {
             log.warn("Seance with ID {} not found", seanceId);
-            return new RuntimeException("Seance not found");
+            return new ResourceNotFoundException("Seance not found");
         });
 
         // Get all seats in the cinema room
@@ -132,10 +134,10 @@ public class SeanceService {
                 dto.getMovieId(), dto.getRoomId(), dto.getStartTime());
 
         Movie movie = movieRepository.findById(dto.getMovieId())
-                .orElseThrow(() -> new RuntimeException("Movie does not exist"));
+                .orElseThrow(() -> new ResourceNotFoundException("Movie does not exist"));
 
         CinemaRoom room = cinemaRoomRepository.findById(dto.getRoomId())
-                .orElseThrow(() -> new RuntimeException("Cinema room does not exist"));
+                .orElseThrow(() -> new ResourceNotFoundException("Cinema room does not exist"));
 
 
         // Calculate busy time of the room
@@ -150,7 +152,7 @@ public class SeanceService {
 
         if (!overlaps.isEmpty()) {
             log.warn("Overlapping seance detected in Room ID: {} at {}", room.getId(), startTime);
-            throw new IllegalStateException("Seance overlaps with existing seance in the same room");
+            throw new SeanceConflictException("Seance overlaps with existing seance in the same room");
         }
 
 

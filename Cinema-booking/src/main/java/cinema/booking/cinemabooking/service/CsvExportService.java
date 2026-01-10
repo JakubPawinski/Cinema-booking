@@ -2,6 +2,7 @@ package cinema.booking.cinemabooking.service;
 
 import cinema.booking.cinemabooking.dto.report.DailySalesDto;
 import cinema.booking.cinemabooking.dto.report.SalesReportDto;
+import cinema.booking.cinemabooking.exception.FileStorageException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -54,7 +55,7 @@ public class CsvExportService {
             return new ByteArrayInputStream(out.toByteArray());
         } catch (IOException e) {
             log.error("Error generating daily sales CSV", e);
-            throw new RuntimeException("Błąd podczas generowania CSV: " + e.getMessage());
+            throw new FileStorageException("Error during generating CSV: " + e.getMessage());
         }
     }
 
@@ -87,7 +88,7 @@ public class CsvExportService {
             return new ByteArrayInputStream(out.toByteArray());
         } catch (IOException e) {
             log.error("Error generating movie sales CSV", e);
-            throw new RuntimeException("Błąd CSV: " + e.getMessage());
+            throw new FileStorageException("Error CSV: " + e.getMessage());
         }
     }
 

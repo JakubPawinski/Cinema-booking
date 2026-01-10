@@ -1,5 +1,6 @@
 package cinema.booking.cinemabooking.service;
 
+import cinema.booking.cinemabooking.exception.FileStorageException;
 import cinema.booking.cinemabooking.model.Reservation;
 import cinema.booking.cinemabooking.model.Ticket;
 import com.google.zxing.BarcodeFormat;
@@ -66,7 +67,7 @@ public class PdfTicketService {
 
         } catch (Exception e) {
             log.error("Critical error during PDF generation for reservation: {}", reservation.getReservationCode(), e);
-            throw new RuntimeException("Failed to generate PDF file", e);
+            throw new FileStorageException("Failed to generate PDF file", e);
         }
 
         return new ByteArrayInputStream(out.toByteArray());
