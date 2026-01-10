@@ -7,13 +7,20 @@ import cinema.booking.cinemabooking.service.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+/**
+ * Mapper for Movie entity and DTOs
+ */
 @Component
 @RequiredArgsConstructor
 public class MovieMapper {
 
     private final FileStorageService fileStorageService;
 
-    // Entity -> DTO (do wyświetlania)
+    /**
+     * Converts Movie entity to MovieDto
+     * @param movie the Movie entity
+     * @return the MovieDto
+     */
     public MovieDto toDto(Movie movie) {
         return MovieDto.builder()
                 .id(movie.getId())
@@ -29,8 +36,11 @@ public class MovieMapper {
                 .build();
     }
 
-    // DTO -> Entity (przy dodawaniu/edycji)
-    // Zwróć uwagę: ta metoda modyfikuje istniejący obiekt Movie, zamiast tworzyć nowy
+    /**
+     * Updates Movie entity from MovieRequestDto
+     * @param dto the request DTO with new data
+     * @param movie the existing Movie entity to update
+     */
     public void updateEntity(MovieRequestDto dto, Movie movie) {
         movie.setTitle(dto.getTitle());
         movie.setDescription(dto.getDescription());
@@ -41,22 +51,23 @@ public class MovieMapper {
         movie.setMainCast(dto.getMainCast());
         movie.setAgeRating(dto.getAgeRating());
 
-        // --- LOGIKA ZDJĘĆ PRZENIESIONA TUTAJ ---
 
-        // 1. Upload pliku fizycznego
+        // Handle image update
         if (dto.getImageFile() != null && !dto.getImageFile().isEmpty()) {
-            // Usuń stary plik jeśli istnieje
-            if (movie.getImageUrl() != null && movie.getImageUrl().startsWith("/uploads/")) {
+            // Delete old image if it was stored locally
+            if (isLocalImage(movie.getImageUrl())) {
                 fileStorageService.deleteFile(movie.getImageUrl());
             }
-            // Zapisz nowy
+            // Store new image
             String uploadedPath = fileStorageService.storeFile(dto.getImageFile(), dto.getTitle());
             movie.setImageUrl(uploadedPath);
         }
-        // 2. Zmiana URL tekstowego
+        // Handle image URL update
         else if (dto.getImageUrl() != null && !dto.getImageUrl().isEmpty()) {
+            // Update only if URL has changed
             if (!dto.getImageUrl().equals(movie.getImageUrl())) {
-                if (movie.getImageUrl() != null && movie.getImageUrl().startsWith("/uploads/")) {
+                // Delete old image if it was stored locally
+                if (isLocalImage(movie.getImageUrl())) {
                     fileStorageService.deleteFile(movie.getImageUrl());
                 }
                 movie.setImageUrl(dto.getImageUrl());
@@ -64,6 +75,11 @@ public class MovieMapper {
         }
     }
 
+    /**
+     * Converts MovieDto (response) to MovieRequestDto (request)
+     * @param dto the MovieDto
+     * @return the MovieRequestDto
+     */
     public MovieRequestDto toRequestDto(MovieDto dto) {
         MovieRequestDto requestDto = new MovieRequestDto();
         requestDto.setTitle(dto.getTitle());
@@ -76,5 +92,14 @@ public class MovieMapper {
         requestDto.setMainCast(dto.getMainCast());
         requestDto.setAgeRating(dto.getAgeRating());
         return requestDto;
+    }
+
+    /**
+     * Checks if the image URL points to a locally stored image
+     * @param imageUrl the image URL to check
+     * @return true if local, false otherwise
+     */
+    private boolean isLocalImage(String imageUrl) {
+        return imageUrl != null && imageUrl.startsWith("/uploads/");
     }
 }

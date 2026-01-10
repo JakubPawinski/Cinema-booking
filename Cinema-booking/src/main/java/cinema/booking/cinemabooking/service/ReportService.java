@@ -19,8 +19,4 @@ public class ReportService {
     public List<DailySalesDto> getDailySalesReport() {
         return salesDao.fetchDailySales();
     }
-
-    public int bulkCancelExpiredReservations() {
-        return salesDao.cancelExpiredReservations();
-    }
 }

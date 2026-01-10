@@ -2,6 +2,7 @@ package cinema.booking.cinemabooking.dao;
 
 import cinema.booking.cinemabooking.dto.report.DailySalesDto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import cinema.booking.cinemabooking.dto.report.SalesReportDto;
 import org.springframework.jdbc.core.RowMapper;
@@ -11,12 +12,22 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
+/**
+ * Data Access Object for sales reports and reservation management
+ */
 @Repository
 @RequiredArgsConstructor
+@Slf4j
 public class SalesDao {
     private final JdbcTemplate jdbcTemplate;
 
+    /**
+     * Fetches sales report data including movie titles, ticket counts, and total revenue.
+     * @return list of SalesReportDto
+     */
     public List<SalesReportDto> fetchSalesReport() {
+        log.info("Fetching sales report");
+
         String sql = """
             SELECT\s
                 m.title as movie_title,\s
@@ -34,9 +45,14 @@ public class SalesDao {
         return jdbcTemplate.query(sql, new SalesReportRowMapper());
     }
 
+
+    /**
+     * Fetches daily sales data including date, tickets sold, and total revenue.
+     * @return list of DailySalesDto
+     */
     public List<DailySalesDto> fetchDailySales() {
-        // CAST(r.created_at AS DATE) działa w H2 i PostgreSQL.
-        // Grupuje transakcje po samym dniu (ignorując godzinę).
+        log.info("Fetching daily sales report");
+
         String sql = """
             SELECT 
                 CAST(r.created_at AS DATE) as sale_date,
@@ -56,13 +72,11 @@ public class SalesDao {
         ));
     }
 
-    public int cancelExpiredReservations() {
-        String sql = "UPDATE reservation SET status = 'CANCELLED' WHERE status = 'PENDING' AND created_at < (CURRENT_TIMESTAMP - INTERVAL '15 minutes')";
-        return jdbcTemplate.update(sql);
-    }
-
-
+    /**
+     * Internal RowMapper for SalesReportDto
+     */
     private static class SalesReportRowMapper implements RowMapper<SalesReportDto> {
+
         @Override
         public SalesReportDto mapRow(ResultSet rs, int rowNum) throws SQLException {
             return new SalesReportDto(
