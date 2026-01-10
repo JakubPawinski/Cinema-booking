@@ -2,19 +2,18 @@ package cinema.booking.cinemabooking.mapper;
 
 import cinema.booking.cinemabooking.dto.response.MovieDto;
 import cinema.booking.cinemabooking.dto.request.MovieRequestDto;
+import cinema.booking.cinemabooking.dto.response.MovieWithSeancesDto;
+import cinema.booking.cinemabooking.dto.response.SeanceDto;
 import cinema.booking.cinemabooking.model.Movie;
-import cinema.booking.cinemabooking.service.FileStorageService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * Mapper for Movie entity and DTOs
  */
 @Component
-@RequiredArgsConstructor
 public class MovieMapper {
-
-    private final FileStorageService fileStorageService;
 
     /**
      * Converts Movie entity to MovieDto
@@ -41,7 +40,7 @@ public class MovieMapper {
      * @param dto the request DTO with new data
      * @param movie the existing Movie entity to update
      */
-    public void updateEntity(MovieRequestDto dto, Movie movie) {
+    public void updateEntityFromDto(MovieRequestDto dto, Movie movie) {
         movie.setTitle(dto.getTitle());
         movie.setDescription(dto.getDescription());
         movie.setGenre(dto.getGenre());
@@ -52,27 +51,6 @@ public class MovieMapper {
         movie.setAgeRating(dto.getAgeRating());
 
 
-        // Handle image update
-        if (dto.getImageFile() != null && !dto.getImageFile().isEmpty()) {
-            // Delete old image if it was stored locally
-            if (isLocalImage(movie.getImageUrl())) {
-                fileStorageService.deleteFile(movie.getImageUrl());
-            }
-            // Store new image
-            String uploadedPath = fileStorageService.storeFile(dto.getImageFile(), dto.getTitle());
-            movie.setImageUrl(uploadedPath);
-        }
-        // Handle image URL update
-        else if (dto.getImageUrl() != null && !dto.getImageUrl().isEmpty()) {
-            // Update only if URL has changed
-            if (!dto.getImageUrl().equals(movie.getImageUrl())) {
-                // Delete old image if it was stored locally
-                if (isLocalImage(movie.getImageUrl())) {
-                    fileStorageService.deleteFile(movie.getImageUrl());
-                }
-                movie.setImageUrl(dto.getImageUrl());
-            }
-        }
     }
 
     /**
@@ -95,11 +73,20 @@ public class MovieMapper {
     }
 
     /**
-     * Checks if the image URL points to a locally stored image
-     * @param imageUrl the image URL to check
-     * @return true if local, false otherwise
+     * Converts Movie entity to MovieWithSeancesDto
+     * @param movie the Movie entity
+     * @param seanceDtos list of SeanceDto associated with the movie
+     * @return the MovieWithSeancesDto
      */
-    private boolean isLocalImage(String imageUrl) {
-        return imageUrl != null && imageUrl.startsWith("/uploads/");
+    public MovieWithSeancesDto toMovieWithSeancesDto(Movie movie, List<SeanceDto> seanceDtos) {
+        return MovieWithSeancesDto.builder()
+                .movieId(movie.getId())
+                .title(movie.getTitle())
+                .genre(movie.getGenre())
+                .durationMin(movie.getDurationMin())
+                .description(movie.getDescription())
+                .imageUrl(movie.getImageUrl())
+                .seances(seanceDtos)
+                .build();
     }
 }

@@ -2,40 +2,39 @@ package cinema.booking.cinemabooking.service;
 
 import cinema.booking.cinemabooking.dto.request.UserDto;
 import cinema.booking.cinemabooking.enums.UserRole;
+import cinema.booking.cinemabooking.mapper.UserMapper;
 import cinema.booking.cinemabooking.model.User;
 import cinema.booking.cinemabooking.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+/**
+ * Service for managing users.
+ */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
 
-    /*
-     * Register a new user
+    /**
+     * Registers a new user.
+     *
+     * @param dto the UserDto containing user registration data
      */
     @Transactional
     public void register(UserDto dto) {
+        log.info("Registering new user: {}", dto.getUsername());
 
-        // Check if username already exists
-        if (userRepository.existsByUsername(dto.getUsername())) {
-            throw new RuntimeException("Username already exists");
-        }
-
-        if (userRepository.existsByEmail(dto.getEmail())) {
-            throw new RuntimeException("Email already exists");
-        }
+        validateUserDto(dto);
 
         // Create new User entity
-        User user = new User();
-        user.setUsername(dto.getUsername());
-        user.setEmail(dto.getEmail());
-        user.setFirstName(dto.getFirstName());
-        user.setLastName(dto.getLastName());
+        User user = userMapper.toEntity(dto);
 
         // Encode and set password
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
@@ -44,5 +43,22 @@ public class UserService {
         user.setRole(UserRole.USER.name());
 
         userRepository.save(user);
+        log.info("User {} registered successfully", dto.getUsername());
+    }
+
+    /**
+     * Validates the UserDto for uniqueness of username and email.
+     *
+     * @param dto the UserDto to validate
+     */
+    private void validateUserDto(UserDto dto) {
+        if (userRepository.existsByUsername(dto.getUsername())) {
+            log.warn("Username {} already exists", dto.getUsername());
+            throw new RuntimeException("Username already exists");
+        }
+        if (userRepository.existsByEmail(dto.getEmail())) {
+            log.warn("Email {} already exists", dto.getEmail());
+            throw new RuntimeException("Email already exists");
+        }
     }
 }

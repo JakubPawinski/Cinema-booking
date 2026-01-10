@@ -35,4 +35,7 @@ public class SeanceDto {
 
     @NotNull(message = "Movie ID is required")
     private Long movieId;
+
+    @NotBlank(message = "Movie title is required")
+    private String movieTitle;
 }

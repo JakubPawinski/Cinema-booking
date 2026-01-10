@@ -1,5 +1,6 @@
 package cinema.booking.cinemabooking.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,13 +15,22 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Service for handling file storage operations such as saving and deleting files.
+ */
 @Service
+@Slf4j
 public class FileStorageService {
 
     private final Path uploadPath;
     private final List<String> allowedExtensions;
 
-    // Wstrzykujemy wartości z application.properties, ale dajemy wartości domyślne (po dwukropku)
+    /**
+     * Constructor to initialize the file storage service with configuration values.
+     *
+     * @param uploadDir         Directory where files will be uploaded.
+     * @param extensions        Comma-separated list of allowed file extensions.
+     */
     public FileStorageService(
             @Value("${app.upload.dir:uploads}") String uploadDir,
             @Value("${app.upload.allowed-extensions:jpg,jpeg,png,webp}") String extensions) {
@@ -30,79 +40,111 @@ public class FileStorageService {
 
         try {
             Files.createDirectories(this.uploadPath);
+            log.info("Initialized file storage at {}", this.uploadPath.toString());
         } catch (IOException ex) {
-            throw new RuntimeException("Nie można utworzyć katalogu dla plików", ex);
+            log.error("Could not create upload directory", ex);
+            throw new RuntimeException("Could not create upload directory", ex);
         }
     }
 
+    /**
+     * Stores a file on the server.
+     *
+     * @param file        The file to be stored.
+     * @param movieTitle  The title of the movie associated with the file.
+     * @return The relative URL path to access the stored file.
+     */
     public String storeFile(MultipartFile file, String movieTitle) {
-        // 1. Walidacja czy plik nie jest pusty
+        log.info("Attempting to store file for movie: {}", movieTitle);
+
+        // Check if file is empty
         if (file.isEmpty()) {
-            throw new IllegalArgumentException("Nie można zapisać pustego pliku");
+            log.warn("Upload attempt failed: File is empty");
+            throw new IllegalArgumentException("Could not store empty file");
         }
 
-        // 2. Pobranie oryginalnej nazwy
+        // Get original filename
         String originalFilename = file.getOriginalFilename();
         if (originalFilename == null) {
-            throw new IllegalArgumentException("Nazwa pliku jest wymagana");
+            log.warn("Upload attempt failed: Original filename is null");
+            throw new IllegalArgumentException("Original filename is invalid");
         }
 
-        // 3. Sprawdzenie rozszerzenia
+        // Check file extension
         String extension = getFileExtension(originalFilename);
         if (!allowedExtensions.contains(extension.toLowerCase())) {
+            log.warn("Upload attempt failed: Invalid extension '{}' for file '{}'", extension, originalFilename);
             throw new IllegalArgumentException(
-                    "Niedozwolone rozszerzenie pliku (" + extension + "). Dozwolone: " + allowedExtensions);
+                    "Invalid file extension (" + extension + "). Allowed: " + allowedExtensions);
         }
 
-        // 4. Generowanie unikalnej nazwy pliku (Tytuł_filmu_UUID.rozszerzenie)
+        // Generate unique filename
         String filename = generateUniqueFilename(movieTitle, extension);
         Path targetLocation = this.uploadPath.resolve(filename);
 
         try {
-            // 5. Zapis pliku na dysk
+            log.debug("Copying file to {}", targetLocation.toString());
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
-            // ZWRACAMY ŚCIEŻKĘ RELATYWNĄ DO UŻYCIA W HTML
-            // (WebConfig mapuje /uploads/** na ten folder)
+            log.info("File stored successfully: {}", filename);
             return "/uploads/" + filename;
 
         } catch (IOException ex) {
-            throw new RuntimeException("Błąd podczas zapisu pliku", ex);
+            log.error("Error storing file '{}'", filename, ex);
+            throw new RuntimeException("Error storing file", ex);
         }
     }
 
+    /**
+     * Deletes a file from the server.
+     *
+     * @param fileUrl The relative URL path of the file to be deleted.
+     */
     public void deleteFile(String fileUrl) {
-        if (fileUrl == null || fileUrl.isEmpty()) return;
+        // Check if fileUrl is null or empty
+        if (fileUrl == null || fileUrl.isEmpty()) {
+            log.warn("Delete attempt failed: File URL is null or empty");
+            return;
+        };
 
         try {
-            // Wyciągamy samą nazwę pliku z URL (usuwamy "/uploads/")
             String filename = fileUrl.replace("/uploads/", "");
             Path filePath = uploadPath.resolve(filename).normalize();
-            Files.deleteIfExists(filePath);
+
+            if (Files.deleteIfExists(filePath)) {
+                log.info("File deleted successfully: {}", filename);
+            } else {
+                log.warn("File not found for deletion: {}", filename);
+            }
         } catch (IOException ex) {
-            // Logujemy błąd, ale nie przerywamy działania aplikacji
-            System.err.println("Nie udało się usunąć pliku: " + ex.getMessage());
+            log.error("Error deleting file: {}", fileUrl, ex);
         }
     }
 
+    /**
+     * Extracts the file extension from a filename.
+     *
+     * @param filename The filename to extract the extension from.
+     * @return The file extension, or an empty string if none found.
+     */
     private String getFileExtension(String filename) {
         int lastDot = filename.lastIndexOf('.');
-        if (lastDot == -1) {
-            return "";
-        }
-        return filename.substring(lastDot + 1);
+        return (lastDot == -1) ? "" : filename.substring(lastDot + 1);
     }
 
+    /**
+     * Generates a unique filename using the movie title and a UUID.
+     *
+     * @param movieTitle The title of the movie.
+     * @param extension  The file extension.
+     * @return A unique filename.
+     */
     private String generateUniqueFilename(String movieTitle, String extension) {
-        // Jeśli nie podano tytułu, użyj "movie"
-        String safeTitle = (movieTitle != null && !movieTitle.isEmpty()) ? movieTitle : "movie";
+        String safeTitle = (movieTitle != null && !movieTitle.isEmpty())
+                ? movieTitle.replaceAll("[^a-zA-Z0-9.\\-]", "_")
+                : "movie";
 
-        // Czyszczenie tytułu z niedozwolonych znaków (zostawiamy tylko litery i cyfry)
-        String cleanTitle = safeTitle.replaceAll("[^a-zA-Z0-9\\.\\-]", "_");
-
-        // Dodanie UUID dla unikalności (skrócone do 8 znaków dla czytelności)
         String uniqueId = UUID.randomUUID().toString().substring(0, 8);
-
-        return cleanTitle + "_" + uniqueId + "." + extension;
+        return safeTitle + "_" + uniqueId + "." + extension;
     }
 }

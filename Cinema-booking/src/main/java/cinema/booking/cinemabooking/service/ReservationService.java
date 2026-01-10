@@ -4,9 +4,12 @@ import cinema.booking.cinemabooking.dto.request.CreateReservationDto;
 import cinema.booking.cinemabooking.dto.response.ReservationSummaryDto;
 import cinema.booking.cinemabooking.enums.ReservationStatus;
 import cinema.booking.cinemabooking.enums.TicketType;
+import cinema.booking.cinemabooking.mapper.ReservationMapper;
+import cinema.booking.cinemabooking.mapper.TicketMapper;
 import cinema.booking.cinemabooking.model.*;
 import cinema.booking.cinemabooking.repository.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -15,13 +18,18 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ByteArrayInputStream;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Service for managing reservations.
+ */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ReservationService {
 
     private final TicketRepository ticketRepository;
@@ -30,32 +38,48 @@ public class ReservationService {
     private final UserRepository userRepository;
     private final ReservationRepository reservationRepository;
     private final PdfTicketService pdfTicketService;
+    private final ReservationMapper reservationMapper;
+    private final TicketMapper ticketMapper;
 
+    /**
+     * Create a new reservation with proper concurrency handling.
+     *
+     * @param request  the reservation request data
+     * @param username the username of the user making the reservation
+     * @return summary of the created reservation
+     */
     @Transactional
     public ReservationSummaryDto createReservation(CreateReservationDto request, String username) {
-        // 1. Pobierz podstawowe dane
+        log.info("Attempting to create reservation for user: {} on seance ID: {}", username, request.getSeanceId());
+
+        // Fetch seance and user
         Seance seance = seanceRepository.findById(request.getSeanceId())
-                .orElseThrow(() -> new RuntimeException("Seance not found"));
+                .orElseThrow(() -> {
+                    log.warn("Seance with ID {} not found", request.getSeanceId());
+                    return new RuntimeException("Seance not found");
+                });
 
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> {
+                    log.warn("User with username {} not found", username);
+                    return new RuntimeException("User not found");
+                });
 
-        // 2. ZBIERZ ID MIEJSC
+        // Collect requested seat IDs
         List<Long> requestedSeatIds = request.getTickets().stream()
                 .map(CreateReservationDto.TicketRequest::getSeatId)
                 .toList();
 
-        // 3. BLOKADA (CRITICAL SECTION)
-        // Ta linia "zamraża" te miejsca w bazie danych.
-        // Jeśli ktoś inny próbuje je teraz zarezerwować, jego transakcja CZEKA tutaj.
+        // Lock the seats to prevent concurrent modifications
+        log.debug("Locking seats for reservation: {}", requestedSeatIds);
         List<Seat> lockedSeats = seatRepository.findAllByIdInWithLock(requestedSeatIds);
 
         if (lockedSeats.size() != requestedSeatIds.size()) {
-            throw new RuntimeException("Nieprawidłowe identyfikatory miejsc.");
+            log.warn("Invalid seat IDs in the reservation request: {}", requestedSeatIds);
+            throw new RuntimeException("Invalid seat IDs in the request");
         }
 
-        // 4. SPRAWDZENIE DOSTĘPNOŚCI
-        // Teraz, gdy mamy pewność, że nikt inny nie modyfikuje tych miejsc, sprawdzamy bilety.
+        // Check if any of the requested seats are already taken
         List<Ticket> takenTickets = ticketRepository.findAllTakenTickets(seance.getId(), LocalDateTime.now());
         List<Long> takenSeatIds = takenTickets.stream()
                 .map(ticket -> ticket.getSeat().getId())
@@ -63,11 +87,12 @@ public class ReservationService {
 
         for (Long seatId : requestedSeatIds) {
             if (takenSeatIds.contains(seatId)) {
-                throw new IllegalStateException("Miejsce o numerze ID " + seatId + " zostało już zajęte przez kogoś innego.");
+                log.warn("Seat ID {} is already taken", seatId);
+                throw new IllegalStateException("Seat " + seatId + " is already taken");
             }
         }
 
-        // 5. TWORZENIE REZERWACJI (Standardowa logika)
+        // Create reservation and tickets
         Reservation reservation = new Reservation();
         reservation.setStatus(ReservationStatus.PENDING);
         reservation.setCreatedAt(LocalDateTime.now());
@@ -77,10 +102,8 @@ public class ReservationService {
         List<Ticket> tickets = new ArrayList<>();
         double totalPrice = 0;
 
-        // Iterujemy po lockedSeats (bo to są już pobrane encje z bazy)
-        // Ale musimy dopasować TicketType z requestu
+        // Iterate over ticket requests to create Ticket entities
         for (CreateReservationDto.TicketRequest ticketRequest : request.getTickets()) {
-            // Znajdź odpowiadające miejsce z listy zablokowanych
             Seat seat = lockedSeats.stream()
                     .filter(s -> s.getId().equals(ticketRequest.getSeatId()))
                     .findFirst()
@@ -89,12 +112,7 @@ public class ReservationService {
             TicketType ticketType = ticketRequest.getTicketType();
             double price = getTicketPrice(seance, ticketType);
 
-            Ticket ticket = new Ticket();
-            ticket.setReservation(reservation);
-            ticket.setSeance(seance);
-            ticket.setSeat(seat);
-            ticket.setTicketType(ticketType);
-            ticket.setPrice(price);
+            Ticket ticket = ticketMapper.toEntity(reservation, seance, seat, ticketType, price);
 
             tickets.add(ticket);
             totalPrice += price;
@@ -103,110 +121,146 @@ public class ReservationService {
         reservation.setTickets(tickets);
         reservation.setTotalPrice(totalPrice);
 
-        // Zapis zwalnia blokadę automatycznie po zakończeniu transakcji
         Reservation savedReservation = reservationRepository.save(reservation);
+        log.info("Reservation created successfully with ID: {} for user: {}", savedReservation.getId(), username);
 
-        return mapToSummary(savedReservation);
+        return reservationMapper.toSummaryDto(savedReservation);
     }
 
 
+    /**
+     * Pay for a reservation, updating its status and generating unique codes.
+     * @param reservationId the ID of the reservation to pay for
+     */
     @Transactional
     public void payForReservation(Long reservationId) {
+        log.info("Processing payment for reservation ID: {}", reservationId);
+
         Reservation reservation = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new RuntimeException("Reservation not found"));
+                .orElseThrow(() -> {
+                    log.warn("Reservation with ID {} not found", reservationId);
+                    return new RuntimeException("Reservation not found");
+                });
 
         if (reservation.getStatus() != ReservationStatus.PENDING) {
+            log.warn("Reservation ID {} cannot be paid in its current status: {}", reservationId, reservation.getStatus());
             throw new IllegalStateException("Reservation cannot be paid in its current status.");
         }
 
         if (reservation.getExpiresAt().isBefore(LocalDateTime.now())) {
+            log.warn("Reservation ID {} has expired and cannot be paid", reservationId);
             reservation.setStatus(ReservationStatus.CANCELLED);
             reservationRepository.save(reservation);
             throw new IllegalStateException("Czas na płatność minął. Rezerwacja anulowana.");
         }
 
+        // Update reservation status and generate codes
         reservation.setStatus(ReservationStatus.PAID);
-
-        //Generate unique code for reservation and tickets
         reservation.setReservationCode(UUID.randomUUID().toString());
 
         for (Ticket ticket : reservation.getTickets()) {
             ticket.setTicketCode(UUID.randomUUID().toString());
         }
         reservationRepository.save(reservation);
+        log.info("Payment processed successfully for reservation ID: {}", reservationId);
     }
 
-    // --- NAPRAWIONA METODA POBIERANIA REZERWACJI ---
-    // Obsługuje zarówno filtrowanie jak i jego brak.
-    // Zastępuje starą metodę, która powodowała błąd.
-    // --- POPRAWIONA METODA POBIERANIA REZERWACJI ---
+    /**
+     * Get paginated reservations for a user, optionally filtered by status.
+     * @param username the username of the user
+     * @param page the page number
+     * @param size the page size
+     * @param status optional reservation status to filter by
+     * @return paginated list of reservation summaries
+     */
     public Page<ReservationSummaryDto> getUserReservations(String username, int page, int size, ReservationStatus status) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        log.debug("Fetching reservations for user: {}, page: {}, size: {}, status {}", username, page, size, status);
 
-        // ZMIANA: Sortujemy po ID lub CreatedAt zamiast nested property (tickets.seance...)
-        // To naprawia problem duplikatów i "znikających" rezerwacji
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> {
+                    log.warn("User with username {} not found", username);
+                    return new RuntimeException("User not found");
+                });
+
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
         Page<Reservation> reservations;
-
         if (status != null) {
             reservations = reservationRepository.findAllByUserAndStatus(user, status, pageable);
         } else {
             reservations = reservationRepository.findAllByUser(user, pageable);
         }
 
-        return reservations.map(this::mapToSummary);
+        return reservations.map(reservationMapper::toSummaryDto);
     }
 
-    // Opcjonalnie: Przeciążenie dla wstecznej kompatybilności (jeśli gdzieś używasz wersji bez statusu)
-    public Page<ReservationSummaryDto> getUserReservations(String username, int page, int size) {
-        return getUserReservations(username, page, size, null);
-    }
-
-    // --- RESZTA METOD BEZ ZMIAN ---
-
-    private double getTicketPrice(Seance seance, TicketType ticketType) {
-        return ticketType == TicketType.REDUCED
-                ? seance.getReducedTicketPrice()
-                : seance.getRegularTicketPrice();
-    }
-
+    /**
+     * Remove a ticket from a reservation and recalculate the total price.
+     * @param reservationId the ID of the reservation
+     * @param ticketId the ID of the ticket to remove
+     * @return updated reservation summary
+     */
     @Transactional
     public ReservationSummaryDto removeTicket(Long reservationId, Long ticketId) {
+        log.info("Removing ticket ID: {} from reservation ID: {}", ticketId, reservationId);
+
         Reservation reservation = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new RuntimeException("Nie znaleziono rezerwacji"));
+                .orElseThrow(() -> {
+                    log.warn("Reservation with ID {} not found", reservationId);
+                    return new RuntimeException("Reservation not found");
+                });
 
         if (reservation.getStatus() != ReservationStatus.PENDING) {
-            throw new IllegalStateException("Nie można edytować opłaconej rezerwacji.");
+            log.warn("Cannot modify ticket in reservation ID {} with status: {}", reservationId, reservation.getStatus());
+            throw new IllegalStateException("Cannot modify a paid reservation.");
         }
 
         Ticket ticketToRemove = reservation.getTickets().stream()
                 .filter(t -> t.getId().equals(ticketId))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Bilet nie istnieje w tej rezerwacji"));
+                .orElseThrow(() -> {
+                    log.warn("Ticket ID {} not found in reservation ID {}", ticketId, reservationId);
+                    return new RuntimeException("Ticket does not exist in the reservation");
+                });
 
         reservation.getTickets().remove(ticketToRemove);
         ticketRepository.delete(ticketToRemove);
         recalculateReservationTotal(reservation);
 
-        return mapToSummary(reservation);
+        log.info("Ticket ID: {} removed successfully from reservation ID: {}", ticketId, reservationId);
+
+        return reservationMapper.toSummaryDto(reservation);
     }
 
+    /**
+     * Update the ticket type of specific ticket in a reservation.
+     * @param reservationId the ID of the reservation
+     * @param ticketId the ID of the ticket to update
+     * @param newType the new ticket type
+     * @return updated reservation summary
+     */
     @Transactional
     public ReservationSummaryDto updateTicketType(Long reservationId, Long ticketId, TicketType newType) {
+        log.info("Updating ticket ID: {} in reservation ID: {} to type: {}", ticketId, reservationId, newType);
+
         Reservation reservation = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new RuntimeException("Nie znaleziono rezerwacji"));
+                .orElseThrow(() -> {
+                    log.warn("Reservation with ID {} not found", reservationId);
+                    return new RuntimeException("Reservation not found");
+                });
 
         if (reservation.getStatus() != ReservationStatus.PENDING) {
-            throw new IllegalStateException("Nie można edytować opłaconej rezerwacji.");
+            log.warn("Cannot edit ticket in reservation ID {} with status: {}", reservationId, reservation.getStatus());
+            throw new IllegalStateException("Cannot modify a paid reservation.");
         }
 
+        // Find the ticket to update
         Ticket ticket = reservation.getTickets().stream()
                 .filter(t -> t.getId().equals(ticketId))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Bilet nie istnieje"));
+                .orElseThrow(() -> new RuntimeException("Ticket does not exist in the reservation"));
 
+        // Update ticket type and price
         ticket.setTicketType(newType);
         Seance seance = ticket.getSeance();
         ticket.setPrice(getTicketPrice(seance, newType));
@@ -214,9 +268,166 @@ public class ReservationService {
 
         recalculateReservationTotal(reservation);
 
-        return mapToSummary(reservation);
+        log.info("Ticket ID: {} updated successfully in reservation ID: {}", ticketId, reservationId);
+        return reservationMapper.toSummaryDto(reservation);
     }
 
+    /**
+     * Cancel a reservation if it is not paid.
+     * @param reservationId the ID of the reservation to cancel
+     */
+    public void cancelReservation(Long reservationId) {
+        log.info("Cancelling reservation ID: {}", reservationId);
+
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> {
+                    log.warn("Reservation with ID {} not found", reservationId);
+                    return new RuntimeException("Reservation not found");
+                });
+
+        if (reservation.getStatus() == ReservationStatus.PAID) {
+            log.warn("Cannot cancel paid reservation ID: {}", reservationId);
+            throw new IllegalStateException("Cannot cancel a paid reservation.");
+        }
+
+        reservation.setStatus(ReservationStatus.CANCELLED);
+        reservationRepository.save(reservation);
+        log.info("Reservation ID: {} cancelled successfully", reservationId);
+    }
+
+    /**
+     * Get detailed information about a reservation for a user.
+     * @param reservationId the ID of the reservation
+     * @param username the username of the user
+     * @return the reservation details
+     */
+    @Transactional(readOnly = true)
+    public Reservation getReservationDetails(Long reservationId, String username) {
+        log.debug("Fetching details for reservation ID: {} for user: {}", reservationId, username);
+
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> {
+                    log.warn("Reservation with ID {} not found", reservationId);
+                    return new RuntimeException("Reservation not found");
+                });
+
+        if (!reservation.getUser().getUsername().equals(username)) {
+            log.warn("User: {} attempted to access reservation ID: {} without permission", username, reservationId);
+            throw new SecurityException("Brak dostępu do tej rezerwacji");
+        }
+
+        reservation.getTickets().size(); // Initialize lazy loading
+        return reservation;
+    }
+
+    /**
+     * Add a ticket to an existing reservation.
+     * @param reservationId the ID of the reservation
+     * @param seatId the ID of the seat to add
+     * @return updated reservation summary
+     */
+    @Transactional
+    public ReservationSummaryDto addTicketToReservation(Long reservationId, Long seatId) {
+        log.info("Adding ticket for seat ID: {} to reservation ID: {}", seatId, reservationId);
+
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> {
+                    log.warn("Reservation with ID {} not found", reservationId);
+                    return new RuntimeException("Reservation not found");
+                });
+
+        if (reservation.getStatus() != ReservationStatus.PENDING) {
+            log.warn("Cannot add ticket to reservation ID {} with status: {}", reservationId, reservation.getStatus());
+            throw new IllegalStateException("Cannot modify a paid reservation.");
+        }
+
+        // Lock the seat
+        Seat seat = seatRepository.findAllByIdInWithLock(List.of(seatId)).stream()
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Miejsce nie istnieje"));
+
+        // Check if the seat is already taken for the seance
+        List<Ticket> takenTickets = ticketRepository.findAllTakenTickets(reservation.getTickets().get(0).getSeance().getId(), LocalDateTime.now());
+        boolean isTaken = takenTickets.stream().anyMatch(t -> t.getSeat().getId().equals(seatId));
+
+        if (isTaken) {
+            log.warn("Seat ID {} is already taken for reservation ID: {}", seatId, reservationId);
+            throw new IllegalStateException("Seat is already taken.");
+        }
+
+        Ticket ticket = ticketMapper.toEntity(reservation,
+                reservation.getTickets().getFirst().getSeance(),
+                seat,
+                TicketType.REGULAR,
+                reservation.getTickets().getFirst().getSeance().getRegularTicketPrice());
+
+        ticketRepository.save(ticket);
+        reservation.getTickets().add(ticket);
+
+        recalculateReservationTotal(reservation);
+
+        log.info("Ticket for seat ID: {} added successfully to reservation ID: {}", seatId, reservationId);
+
+        return reservationMapper.toSummaryDto(reservation);
+    }
+
+    /**
+     * Generate a PDF ticket for a paid reservation.
+     * @param reservationId the ID of the reservation
+     * @param username the username of the user
+     * @return ByteArrayInputStream containing the PDF data
+     */
+    @Transactional(readOnly = true)
+    public ByteArrayInputStream generatePdfForReservation(Long reservationId, String username) {
+        log.info("Generating PDF ticket for reservation ID: {} for user: {}", reservationId, username);
+        Reservation reservation = getReservationDetails(reservationId, username);
+
+        if (reservation.getStatus() != ReservationStatus.PAID) {
+            log.warn("Cannot generate PDF for unpaid reservation ID: {}", reservationId);
+            throw new IllegalStateException("Cannot generate PDF for unpaid reservation.");
+        }
+
+        return pdfTicketService.generateReservationPdf(reservation);
+    }
+
+    /**
+     * Scheduled task to automatically cancel expired reservations.
+     * Runs every minute.
+     */
+    @Scheduled(fixedRate = 60000)
+    @Transactional
+    public void autoCancelExpiredReservations() {
+        LocalDateTime now = LocalDateTime.now();
+        List<Reservation> expiredReservations = reservationRepository.findAllByStatusAndExpiresAtBefore(ReservationStatus.PENDING, now);
+
+        if (!expiredReservations.isEmpty()) {
+            log.info("Found {} expired reservations to cancel", expiredReservations.size());
+            for (Reservation reservation : expiredReservations) {
+                reservation.setStatus(ReservationStatus.CANCELLED);
+
+                //TODO: send notification to user about cancellation
+            }
+            reservationRepository.saveAll(expiredReservations);
+            log.info("Successfully cancelled {} expired reservations.", expiredReservations.size());
+        }
+    }
+
+    /**
+     * Get the ticket price based on the ticket type.
+     * @param seance the seance for which the ticket is being purchased
+     * @param ticketType the type of ticket (REGULAR or REDUCED)
+     * @return the price of the ticket
+     */
+    private double getTicketPrice(Seance seance, TicketType ticketType) {
+        return ticketType == TicketType.REDUCED
+                ? seance.getReducedTicketPrice()
+                : seance.getRegularTicketPrice();
+    }
+
+    /**
+     * Recalculate the total price of a reservation based on its tickets.
+     * @param reservation the reservation to recalculate
+     */
     private void recalculateReservationTotal(Reservation reservation) {
         double total = reservation.getTickets().stream()
                 .mapToDouble(Ticket::getPrice)
@@ -224,124 +435,4 @@ public class ReservationService {
         reservation.setTotalPrice(total);
         reservationRepository.save(reservation);
     }
-
-    public void cancelReservation(Long reservationId) {
-        Reservation reservation = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new RuntimeException("Reservation not found"));
-
-        if (reservation.getStatus() == ReservationStatus.PAID) {
-            throw new IllegalStateException("Cannot cancel a paid reservation.");
-        }
-
-        reservation.setStatus(ReservationStatus.CANCELLED);
-        reservationRepository.save(reservation);
-    }
-
-    @Transactional(readOnly = true)
-    public Reservation getReservationDetails(Long reservationId, String username) {
-        Reservation reservation = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new RuntimeException("Rezerwacja nie znaleziona"));
-
-        if (!reservation.getUser().getUsername().equals(username)) {
-            throw new SecurityException("Brak dostępu do tej rezerwacji");
-        }
-
-        reservation.getTickets().size(); // Init Lazy
-        return reservation;
-    }
-
-    // Helper mapujący
-    private ReservationSummaryDto mapToSummary(Reservation r) {
-        String title = r.getTickets().isEmpty() ? "Brak biletów" : r.getTickets().get(0).getSeance().getMovie().getTitle();
-        LocalDateTime time = r.getTickets().isEmpty() ? null : r.getTickets().get(0).getSeance().getStartTime();
-
-        return ReservationSummaryDto.builder()
-                .id(r.getId())
-                .status(r.getStatus())
-                .totalPrice(r.getTotalPrice())
-                .expiresAt(r.getExpiresAt())
-                .ticketCount(r.getTickets().size())
-                .movieTitle(title)
-                .seanceStartTime(time)
-                .build();
-    }
-
-    @Scheduled(fixedRate = 60000) // 60000 ms = 1 minuta
-    @Transactional
-    public void autoCancelExpiredReservations() {
-        LocalDateTime now = LocalDateTime.now();
-
-        // 1. Pobierz wszystkie rezerwacje, które są PENDING i już wygasły
-        List<Reservation> expiredReservations = reservationRepository.findAllByStatusAndExpiresAtBefore(ReservationStatus.PENDING, now);
-
-        if (!expiredReservations.isEmpty()) {
-            // 2. Zmień status na CANCELLED
-            for (Reservation reservation : expiredReservations) {
-                reservation.setStatus(ReservationStatus.CANCELLED);
-                // Tu mógłbyś też np. wysłać e-mail do użytkownika: "Twoja rezerwacja wygasła"
-            }
-
-            // 3. Zapisz zmiany
-            reservationRepository.saveAll(expiredReservations);
-
-            System.out.println("Automatycznie anulowano " + expiredReservations.size() + " wygasłych rezerwacji.");
-        }
-    }
-
-
-
-    // W ReservationService.java
-
-    @Transactional
-    public ReservationSummaryDto addTicketToReservation(Long reservationId, Long seatId) {
-        // 1. Pobierz rezerwację
-        Reservation reservation = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new RuntimeException("Rezerwacja nie istnieje"));
-
-        if (reservation.getStatus() != ReservationStatus.PENDING) {
-            throw new IllegalStateException("Rezerwacja nie jest aktywna.");
-        }
-
-        // 2. Pobierz i ZABLOKUJ miejsce (wymaga metody z @Lock w SeatRepository)
-        // Zakładam, że dodałeś findAllByIdInWithLock do SeatRepository w poprzednim kroku
-        Seat seat = seatRepository.findAllByIdInWithLock(List.of(seatId)).stream()
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Miejsce nie istnieje"));
-
-        // 3. Sprawdź dostępność (czy nie ma aktywnych biletów na to miejsce)
-        List<Ticket> takenTickets = ticketRepository.findAllTakenTickets(reservation.getTickets().get(0).getSeance().getId(), LocalDateTime.now());
-        boolean isTaken = takenTickets.stream().anyMatch(t -> t.getSeat().getId().equals(seatId));
-
-        if (isTaken) {
-            throw new IllegalStateException("Miejsce jest już zajęte.");
-        }
-
-        // 4. Stwórz bilet
-        Ticket ticket = new Ticket();
-        ticket.setReservation(reservation);
-        ticket.setSeance(reservation.getTickets().get(0).getSeance());
-        ticket.setSeat(seat);
-        ticket.setTicketType(TicketType.REGULAR); // Domyślnie normalny
-        ticket.setPrice(ticket.getSeance().getRegularTicketPrice());
-
-        ticketRepository.save(ticket);
-        reservation.getTickets().add(ticket);
-
-        // Przelicz sumę
-        recalculateReservationTotal(reservation);
-
-        return mapToSummary(reservation);
-    }
-
-    @Transactional(readOnly = true)
-    public java.io.ByteArrayInputStream generatePdfForReservation(Long reservationId, String username) {
-        Reservation reservation = getReservationDetails(reservationId, username);
-
-        if (reservation.getStatus() != ReservationStatus.PAID) {
-            throw new IllegalStateException("Nie można wygenerować biletu dla nieopłaconej rezerwacji.");
-        }
-
-        return pdfTicketService.generateReservationPdf(reservation);
-    }
-
 }
