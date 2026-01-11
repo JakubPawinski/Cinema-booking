@@ -1,119 +1,145 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layout}">
+      layout:decorate="~{fragments/layout}">
 <head>
-    <title>Twój Profil</title>
+    <title>Your Profile - Cinema Booking</title>
 </head>
 <body>
 
 <div layout:fragment="content">
-    <div class="container mx-auto px-6 py-12">
+    <div class="container mx-auto px-6 py-20">
 
-        <div class="flex items-center gap-4 mb-10 border-b border-gray-800 pb-6">
-            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-cinema-accent to-purple-800 flex items-center justify-center text-white text-2xl font-bold">
-                <i class="fas fa-user"></i>
+        <!--
+            User Identity Header
+        -->
+        <div class="flex items-center gap-6 mb-12 border-b border-white/5 pb-10">
+            <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-cinema-accent to-purple-900 flex items-center justify-center text-white text-3xl shadow-lg shadow-purple-900/20">
+                <i class="fas fa-user-astronaut"></i>
             </div>
             <div>
-                <h1 class="text-3xl font-bold text-white font-serif">Cześć, <span th:text="${username}">User</span>!</h1>
-                <p class="text-gray-400">Twoje centrum zarządzania rezerwacjami.</p>
+                <h1 class="text-4xl font-bold text-white font-serif tracking-tight">
+                    Welcome back, <span class="text-cinema-accent" th:text="${username}">Member</span>!
+                </h1>
+                <p class="text-gray-500 mt-1">Manage your bookings, tickets, and account preferences.</p>
             </div>
         </div>
 
-        <div class="bg-cinema-dark rounded-xl border border-gray-800 overflow-hidden shadow-2xl">
-            <div class="p-6 border-b border-gray-800">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-bold text-white">Twoje Rezerwacje</h2>
-                </div>
+        <!--
+            Reservations Dashboard
+            Main container for the booking history and status filters.
+        -->
+        <div class="bg-cinema-dark/40 backdrop-blur-md rounded-3xl border border-white/5 overflow-hidden shadow-2xl">
 
-                <div class="flex gap-2 flex-wrap">
+            <!-- Filters & Navigation -->
+            <div class="p-8 border-b border-white/5 bg-white/5">
+                <h2 class="text-xl font-bold text-white mb-6 uppercase tracking-widest text-sm text-gray-400">
+                    <i class="fas fa-history mr-2 text-cinema-accent"></i> Booking History
+                </h2>
 
+                <div class="flex gap-3 flex-wrap">
                     <a th:href="@{/profile}"
-                       th:classappend="${currentStatus == null} ? 'bg-cinema-accent text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'"
-                       class="px-4 py-2 rounded-lg text-sm font-bold transition no-underline border border-transparent">
-                        Wszystkie
+                       th:classappend="${currentStatus == null} ? 'bg-cinema-accent text-white shadow-lg shadow-purple-900/40' : 'bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-800'"
+                       class="px-5 py-2.5 rounded-xl text-xs font-black transition no-underline border border-white/5 uppercase tracking-tighter">
+                        All Tickets
                     </a>
 
                     <a th:href="@{/profile(status='PAID')}"
-                       th:classappend="${currentStatus != null and currentStatus.name() == 'PAID'} ? 'bg-cinema-accent text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'"
-                       class="px-4 py-2 rounded-lg text-sm font-bold transition no-underline border border-transparent">
-                        <i class="fas fa-check-circle mr-1"></i> Opłacone
+                       th:classappend="${currentStatus != null and currentStatus.name() == 'PAID'} ? 'bg-green-600 text-white shadow-lg shadow-green-900/20' : 'bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-800'"
+                       class="px-5 py-2.5 rounded-xl text-xs font-black transition no-underline border border-white/5 uppercase tracking-tighter">
+                        <i class="fas fa-check-circle mr-1"></i> Paid
                     </a>
 
                     <a th:href="@{/profile(status='PENDING')}"
-                       th:classappend="${currentStatus != null and currentStatus.name() == 'PENDING'} ? 'bg-cinema-accent text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'"
-                       class="px-4 py-2 rounded-lg text-sm font-bold transition no-underline border border-transparent">
-                        <i class="fas fa-clock mr-1"></i> Oczekujące
+                       th:classappend="${currentStatus != null and currentStatus.name() == 'PENDING'} ? 'bg-cinema-gold text-black shadow-lg shadow-yellow-900/20' : 'bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-800'"
+                       class="px-5 py-2.5 rounded-xl text-xs font-black transition no-underline border border-white/5 uppercase tracking-tighter">
+                        <i class="fas fa-clock mr-1"></i> Pending
                     </a>
 
                     <a th:href="@{/profile(status='CANCELLED')}"
-                       th:classappend="${currentStatus != null and currentStatus.name() == 'CANCELLED'} ? 'bg-cinema-accent text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'"
-                       class="px-4 py-2 rounded-lg text-sm font-bold transition no-underline border border-transparent">
-                        <i class="fas fa-times-circle mr-1"></i> Anulowane
+                       th:classappend="${currentStatus != null and currentStatus.name() == 'CANCELLED'} ? 'bg-red-600 text-white shadow-lg shadow-red-900/20' : 'bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-800'"
+                       class="px-5 py-2.5 rounded-xl text-xs font-black transition no-underline border border-white/5 uppercase tracking-tighter">
+                        <i class="fas fa-times-circle mr-1"></i> Cancelled
                     </a>
                 </div>
             </div>
 
-            <div th:if="${reservations.isEmpty()}" class="p-10 text-center text-gray-500">
-                <i class="fas fa-ticket-alt text-4xl mb-3 opacity-50"></i>
-                <p>Brak rezerwacji w tej kategorii.</p>
-                <a href="/repertoire" class="text-cinema-accent hover:underline mt-2 block">Sprawdź repertuar</a>
+            <!-- Empty State -->
+            <div th:if="${reservations.isEmpty()}" class="p-20 text-center">
+                <div class="w-20 h-20 bg-gray-900/50 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/5">
+                    <i class="fas fa-ticket-alt text-3xl text-gray-700"></i>
+                </div>
+                <h3 class="text-white font-bold text-lg mb-2">No bookings found</h3>
+                <p class="text-gray-500 mb-8 max-w-xs mx-auto">It seems you haven't made any reservations in this category yet.</p>
+                <a href="/movies" class="bg-white text-black px-8 py-3 rounded-full font-bold text-sm hover:bg-cinema-accent hover:text-white transition-all uppercase tracking-widest no-underline">
+                    Find a Movie
+                </a>
             </div>
 
-            <div th:unless="${reservations.isEmpty()}" class="divide-y divide-gray-800">
+            <!-- Reservation List -->
+            <div th:unless="${reservations.isEmpty()}" class="divide-y divide-white/5">
                 <a th:each="res : ${reservations.content}"
                    th:href="@{/profile/reservation/{id}(id=${res.id})}"
-                   class="block p-6 hover:bg-white/5 transition group no-underline">
+                   class="group block p-8 hover:bg-white/[0.03] transition-all duration-300 no-underline">
 
-                    <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div class="flex flex-col lg:flex-row justify-between items-center gap-6">
 
-                        <div class="flex items-center gap-4 w-full md:w-auto">
-                            <div class="w-12 h-12 rounded bg-gray-800 flex items-center justify-center text-gray-400 font-bold group-hover:text-cinema-accent transition">
-                                <span th:text="${res.ticketCount}">2</span>x
+                        <!-- Movie Info Slot -->
+                        <div class="flex items-center gap-6 w-full lg:w-auto">
+                            <div class="relative">
+                                <div class="w-14 h-14 rounded-xl bg-cinema-black border border-white/10 flex items-center justify-center text-cinema-accent font-black text-xl group-hover:scale-110 transition-transform">
+                                    <span th:text="${res.ticketCount}">1</span>
+                                </div>
+                                <div class="absolute -top-1 -right-1 w-3 h-3 bg-cinema-accent rounded-full animate-pulse shadow-[0_0_8px_rgba(147,51,234,1)]"></div>
                             </div>
                             <div>
-                                <h3 class="text-lg font-bold text-white group-hover:text-cinema-accent transition" th:text="${res.movieTitle}">Tytuł</h3>
-                                <p class="text-sm text-gray-400">
-                                    <i class="far fa-calendar mr-1"></i>
-                                    <span th:text="${res.seanceStartTime != null ? #temporals.format(res.seanceStartTime, 'dd.MM.yyyy HH:mm') : 'Brak daty'}">Data</span>
-                                </p>
+                                <h3 class="text-xl font-bold text-white group-hover:text-cinema-accent transition-colors font-serif" th:text="${res.movieTitle}">Movie Title</h3>
+                                <div class="flex items-center gap-4 mt-1">
+                                    <p class="text-sm text-gray-500 flex items-center gap-2">
+                                        <i class="far fa-calendar-alt text-cinema-accent"></i>
+                                        <span th:text="${res.seanceStartTime != null ? #temporals.format(res.seanceStartTime, 'MMM dd, yyyy HH:mm') : 'TBA'}">Date</span>
+                                    </p>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end">
-                            <span th:if="${res.status.name() == 'PAID'}" class="px-3 py-1 rounded-full text-xs font-bold bg-green-900/50 text-green-400 border border-green-800">OPŁACONA</span>
-                            <span th:if="${res.status.name() == 'PENDING'}" class="px-3 py-1 rounded-full text-xs font-bold bg-yellow-900/50 text-yellow-400 border border-yellow-800">OCZEKUJE</span>
-                            <span th:if="${res.status.name() == 'CANCELLED'}" class="px-3 py-1 rounded-full text-xs font-bold bg-red-900/50 text-red-400 border border-red-800">ANULOWANA</span>
+                        <!-- Status & Price Slot -->
+                        <div class="flex items-center gap-8 w-full lg:w-auto justify-between lg:justify-end">
+                            <div class="flex flex-col items-end">
+                                <span th:if="${res.status.name() == 'PAID'}" class="text-[10px] font-black px-3 py-1 rounded-md bg-green-500/10 text-green-400 border border-green-500/20 uppercase tracking-widest mb-1">Authenticated Ticket</span>
+                                <span th:if="${res.status.name() == 'PENDING'}" class="text-[10px] font-black px-3 py-1 rounded-md bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 uppercase tracking-widest mb-1">Awaiting Payment</span>
+                                <span th:if="${res.status.name() == 'CANCELLED'}" class="text-[10px] font-black px-3 py-1 rounded-md bg-red-500/10 text-red-400 border border-red-500/20 uppercase tracking-widest mb-1">Voided</span>
 
-                            <span class="text-white font-bold text-lg" th:text="${res.totalPrice} + ' zł'">50.00 zł</span>
-                            <i class="fas fa-chevron-right text-gray-600 group-hover:text-white transition"></i>
+                                <span class="text-white font-bold text-2xl tracking-tighter" th:text="${res.totalPrice} + ' PLN'">0.00 PLN</span>
+                            </div>
+                            <i class="fas fa-chevron-right text-gray-700 group-hover:text-white group-hover:translate-x-1 transition-all"></i>
                         </div>
                     </div>
                 </a>
             </div>
 
-            <div th:if="${reservations.totalPages > 1}" class="p-4 border-t border-gray-800 flex justify-center items-center gap-4">
+            <!-- Pagination Support -->
+            <div th:if="${reservations.totalPages > 1}" class="p-6 bg-cinema-black/20 border-t border-white/5 flex justify-center items-center gap-6">
 
                 <a th:href="@{/profile(page=${reservations.number - 1}, status=${currentStatus})}"
-                   th:classappend="${reservations.first} ? 'opacity-50 pointer-events-none' : ''"
-                   class="px-4 py-2 rounded bg-gray-800 text-white hover:bg-cinema-accent transition text-sm font-bold no-underline">
-                    <i class="fas fa-chevron-left mr-1"></i> Poprzednia
+                   th:classappend="${reservations.first} ? 'opacity-20 pointer-events-none' : ''"
+                   class="w-10 h-10 rounded-full bg-gray-800 text-white flex items-center justify-center hover:bg-cinema-accent transition no-underline border border-white/5">
+                    <i class="fas fa-arrow-left"></i>
                 </a>
 
-                <span class="text-gray-400 text-sm">
-                    Strona <span th:text="${reservations.number + 1}">1</span> z <span th:text="${reservations.totalPages}">5</span>
-                </span>
+                <div class="text-gray-500 text-xs font-bold uppercase tracking-widest">
+                    Page <span class="text-white" th:text="${reservations.number + 1}">1</span> / <span th:text="${reservations.totalPages}">1</span>
+                </div>
 
                 <a th:href="@{/profile(page=${reservations.number + 1}, status=${currentStatus})}"
-                   th:classappend="${reservations.last} ? 'opacity-50 pointer-events-none' : ''"
-                   class="px-4 py-2 rounded bg-gray-800 text-white hover:bg-cinema-accent transition text-sm font-bold no-underline">
-                    Następna <i class="fas fa-chevron-right ml-1"></i>
+                   th:classappend="${reservations.last} ? 'opacity-20 pointer-events-none' : ''"
+                   class="w-10 h-10 rounded-full bg-gray-800 text-white flex items-center justify-center hover:bg-cinema-accent transition no-underline border border-white/5">
+                    <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
 
         </div>
     </div>
-
 </div>
 
 </body>

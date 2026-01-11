@@ -65,7 +65,7 @@ public class AdminMovieController {
     @PostMapping("/add")
     public String addMovie(@ModelAttribute("movie") MovieRequestDto dto) {
         movieService.addMovie(dto);
-        return "redirect:/admin/movies"; // Przekierowanie po sukcesie
+        return "redirect:/admin/movies";
     }
 
     /**

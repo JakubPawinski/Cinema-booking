@@ -1,128 +1,140 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layout}">
+      layout:decorate="~{fragments/layout}">
 <head>
-    <title>Płatność i Zarządzanie</title>
+    <title>Payment & Management</title>
 </head>
 <body>
 
 <div layout:fragment="content">
     <div class="container mx-auto px-6 py-12 flex flex-col lg:flex-row gap-12">
 
+        <!--
+            Reservation Management Section
+        -->
         <div class="w-full lg:w-2/3">
             <h2 class="text-3xl font-bold text-white mb-6 border-l-4 border-cinema-accent pl-4 font-serif">
-                ZARZĄDZAJ REZERWACJĄ
+                MANAGE RESERVATION
             </h2>
 
             <div id="tickets-container" class="space-y-4">
+                <!-- Iterating through selected tickets in the current reservation -->
                 <div th:each="ticket : ${reservation.tickets}"
                      th:id="'ticket-' + ${ticket.id}"
                      class="bg-cinema-dark p-4 rounded-xl border border-gray-800 flex justify-between items-center transition hover:border-gray-600">
 
+                    <!-- Seat Information -->
                     <div class="flex items-center gap-4">
                         <div class="w-12 h-12 rounded bg-gray-800 flex flex-col items-center justify-center text-cinema-accent font-bold border border-gray-700">
-                            <span class="text-xs text-gray-500">Rząd</span>
+                            <span class="text-xs text-gray-500 uppercase">Row</span>
                             <span th:text="${ticket.seat.rowNumber}">1</span>
                         </div>
                         <div class="w-12 h-12 rounded bg-gray-800 flex flex-col items-center justify-center text-white font-bold border border-gray-700">
-                            <span class="text-xs text-gray-500">M-ce</span>
+                            <span class="text-xs text-gray-500 uppercase">Seat</span>
                             <span th:text="${ticket.seat.seatNumber}">5</span>
                         </div>
                     </div>
 
+                    <!-- Ticket Type Selection -->
                     <div class="flex-grow px-6">
-                        <label class="block text-xs text-gray-500 mb-1">Typ Biletu</label>
+                        <label class="block text-xs text-gray-500 mb-1 font-bold uppercase">Ticket Type</label>
                         <select onchange="updateTicketType(this)"
                                 th:data-ticket-id="${ticket.id}"
-                                class="w-full bg-black border border-gray-700 text-white rounded p-2 text-sm focus:border-cinema-accent focus:outline-none">
+                                class="w-full bg-black border border-gray-700 text-white rounded p-2 text-sm focus:border-cinema-accent focus:outline-none transition">
 
                             <option value="REGULAR" th:selected="${ticket.ticketType.name() == 'REGULAR'}">
-                                Normalny
+                                Regular
                             </option>
                             <option value="REDUCED" th:selected="${ticket.ticketType.name() == 'REDUCED'}">
-                                Ulgowy
+                                Reduced
                             </option>
                             <option value="FAMILY" th:selected="${ticket.ticketType.name() == 'FAMILY'}">
-                                Rodzinny
+                                Family
                             </option>
                         </select>
                     </div>
 
+                    <!-- Price and Removal -->
                     <div class="flex items-center gap-6">
                         <div class="text-right">
                             <span class="block text-cinema-gold font-bold text-lg ticket-price"
-                                  th:text="${ticket.price} + ' zł'">25.0 zł</span>
+                                  th:text="${#numbers.formatDecimal(ticket.price, 1, 2)} + ' USD'">25.00 USD</span>
                         </div>
 
                         <button onclick="removeTicket(this)" th:data-ticket-id="${ticket.id}"
-                                class="text-gray-500 hover:text-red-500 transition p-2" title="Usuń bilet">
+                                class="text-gray-500 hover:text-red-500 transition p-2 cursor-pointer bg-transparent border-0" title="Remove ticket">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     </div>
                 </div>
 
-                <div th:if="${reservation.tickets.isEmpty()}" class="text-center text-gray-500 py-8">
-                    Brak biletów w rezerwacji.
+                <!-- Fallback for empty state -->
+                <div th:if="${reservation.tickets.isEmpty()}" class="text-center text-gray-500 py-8 italic">
+                    No tickets found in this reservation.
                 </div>
             </div>
 
             <div class="mt-6">
-                <a href="/" class="text-cinema-accent hover:text-white transition text-sm no-underline">
-                    <i class="fas fa-plus-circle mr-1"></i> Dodaj kolejne miejsca (wymaga nowej rezerwacji w tej wersji)
+                <a href="/" class="text-cinema-accent hover:text-white transition text-sm no-underline flex items-center gap-2">
+                    <i class="fas fa-plus-circle"></i> Add more seats (requires new reservation in this version)
                 </a>
             </div>
         </div>
 
+        <!--
+            Checkout Sidebar
+        -->
         <div class="w-full lg:w-1/3">
             <div class="bg-gray-900 p-8 rounded-2xl border border-gray-800 shadow-2xl sticky top-24">
 
+                <!-- Expiration Countdown -->
                 <div class="mb-6 text-center">
-                    <p class="text-gray-400 text-sm">Twój czas na dokończenie:</p>
-                    <div class="text-3xl font-mono text-white mt-1" id="timer">--:--</div>
+                    <p class="text-gray-400 text-sm uppercase tracking-widest">Time Remaining:</p>
+                    <div class="text-3xl font-mono text-white mt-1 border-b border-gray-800 pb-4 inline-block px-4" id="timer">--:--</div>
                 </div>
 
-                <div class="space-y-4 mb-8 border-t border-b border-gray-800 py-4">
+                <!-- Financial Summary -->
+                <div class="space-y-4 mb-8 py-4">
                     <div class="flex justify-between">
-                        <span class="text-gray-500">Numer rezerwacji:</span>
-                        <span class="text-white font-mono" th:text="${reservation.id}">#123</span>
+                        <span class="text-gray-500">Reservation ID:</span>
+                        <span class="text-white font-mono" th:text="'#' + ${reservation.id}">#123</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-gray-500">Liczba biletów:</span>
-                        <span class="text-white" id="summary-count" th:text="${reservation.tickets.size()}">2</span>
+                        <span class="text-gray-500">Total Tickets:</span>
+                        <span class="text-white" id="summary-count" th:text="${reservation.tickets.size()}">0</span>
                     </div>
                     <div class="flex justify-between items-center pt-2">
-                        <span class="text-gray-400">Do zapłaty:</span>
+                        <span class="text-gray-400 font-bold uppercase text-xs">Total Amount:</span>
                         <span class="text-3xl font-bold text-cinema-accent" id="summary-total"
-                              th:text="${reservation.totalPrice} + ' zł'">50.00 zł</span>
+                              th:text="${#numbers.formatDecimal(reservation.totalPrice, 1, 2)} + ' USD'">0.00 USD</span>
                     </div>
                 </div>
 
+                <!-- Action Buttons -->
                 <button onclick="payReservation()" id="pay-btn"
-                        class="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-bold transition shadow-lg transform hover:scale-105 mb-4">
-                    <i class="fas fa-credit-card mr-2"></i> Opłać Rezerwację
+                        class="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-bold transition shadow-lg transform hover:scale-[1.02] mb-4 cursor-pointer border-0">
+                    <i class="fas fa-credit-card mr-2"></i> Pay for Reservation
                 </button>
 
-                <button onclick="cancelReservation()" class="w-full border border-red-900 text-red-500 hover:bg-red-900/20 py-3 rounded-xl font-bold transition">
-                    Anuluj Rezerwację
+                <button onclick="cancelReservation()" class="w-full border border-red-900 text-red-500 hover:bg-red-900/20 py-3 rounded-xl font-bold transition cursor-pointer bg-transparent">
+                    Cancel Reservation
                 </button>
             </div>
         </div>
     </div>
 
+    <!-- Client-side Logic for Reservation Management -->
     <script th:inline="javascript">
-        /*
-           CRITICAL FIX: Wymuszamy format ISO-8601 ('yyyy-MM-ddTHH:mm:ss') po stronie serwera.
-           Eliminuje to błąd 'NaN' w JavaScript wynikający z różnic w domyślnym toString() Javy.
-        */
         const expiresAtStr = /*[[${#temporals.format(reservation.expiresAt, 'yyyy-MM-dd''T''HH:mm:ss')}]]*/ '';
         const reservationId = /*[[${reservation.id}]]*/ 0;
 
-        // --- 1. TIMER OBSŁUGUJĄCY WYGAŚNIĘCIE ---
+        /**
+         * Timer Logic
+         */
         function startTimer() {
             const expireDate = new Date(expiresAtStr).getTime();
 
-            // Fail-safe: Jeśli data jest błędna, nie sypiemy błędami w konsoli w pętli
             if (isNaN(expireDate)) {
                 console.error("Critical Error: Invalid Expiration Date Format received:", expiresAtStr);
                 document.getElementById("timer").innerText = "ERR";
@@ -135,14 +147,15 @@
 
                 if (distance < 0) {
                     clearInterval(interval);
-                    document.getElementById("timer").innerHTML = "WYGASŁA";
-                    document.getElementById("timer").classList.add("text-red-500");
+                    const timerEl = document.getElementById("timer");
+                    timerEl.innerHTML = "EXPIRED";
+                    timerEl.classList.add("text-red-500");
 
                     const payBtn = document.getElementById("pay-btn");
                     if (payBtn) {
                         payBtn.disabled = true;
                         payBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                        payBtn.title = "Rezerwacja wygasła";
+                        payBtn.title = "Reservation has expired";
                     }
                     return;
                 }
@@ -150,21 +163,19 @@
                 const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
                 const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-                // Formatowanie MM:SS
                 document.getElementById("timer").innerHTML =
                     (minutes < 10 ? "0" + minutes : minutes) + "m " +
                     (seconds < 10 ? "0" + seconds : seconds) + "s";
             }, 1000);
         }
 
-        // Uruchomienie timera
         if (expiresAtStr) {
             startTimer();
-        } else {
-            console.warn("Brak daty wygaśnięcia rezerwacji.");
         }
 
-        // --- 2. ZMIANA TYPU BILETU ---
+        /**
+         * Update Ticket Type via API
+         */
         async function updateTicketType(selectElement) {
             const ticketId = selectElement.dataset.ticketId;
             const newType = selectElement.value;
@@ -175,22 +186,22 @@
                 });
 
                 if (response.ok) {
-                    const summary = await response.json();
-                    // Reload jest najbezpieczniejszy, by przeliczyć ceny jednostkowe w widoku HTML
-                    // (chyba że zrobimy pełny update DOM w JS, co jest overkill przy SSR)
                     location.reload();
                 } else {
-                    alert("Błąd aktualizacji biletu. Spróbuj odświeżyć stronę.");
+                    alert("Error updating ticket. Please refresh the page.");
                 }
             } catch (e) {
                 console.error("Network error:", e);
-                alert("Błąd połączenia.");
+                alert("Connection error.");
             }
         }
 
-        // --- 3. USUWANIE BILETU ---
+        /**
+         * Remove Individual Ticket
+         * Deletes a seat from the reservation and updates UI dynamically
+         */
         async function removeTicket(btnElement) {
-            if (!confirm("Czy na pewno usunąć ten bilet?")) return;
+            if (!confirm("Are you sure you want to remove this ticket?")) return;
 
             const ticketId = btnElement.dataset.ticketId;
 
@@ -201,88 +212,81 @@
 
                 if (response.ok) {
                     const summary = await response.json();
-
-                    // Usuwamy wiersz z DOM bez przeładowania
-                    const row = document.getElementById('ticket-' + ticketId);
-                    if (row) row.remove();
-
+                    document.getElementById('ticket-' + ticketId)?.remove();
                     updateSummaryUI(summary);
 
-                    // Jeśli usunięto ostatni bilet
                     if (summary.ticketCount === 0) {
-                        alert("Rezerwacja pusta. Zostanie anulowana.");
+                        alert("Reservation is now empty and will be cancelled.");
                         window.location.href = "/";
                     }
                 } else {
-                    alert("Nie udało się usunąć biletu.");
+                    alert("Failed to remove ticket.");
                 }
             } catch (e) {
                 console.error(e);
             }
         }
 
-        // --- 4. PŁATNOŚĆ ---
+        /**
+         * Process Payment
+         */
         async function payReservation() {
-            if(!confirm("Symulacja: Potwierdź płatność.")) return;
+            if(!confirm("Simulation: Proceed with payment?")) return;
 
-            // UI: Zablokuj przycisk, pokaż, że przetwarzasz
             const payBtn = document.getElementById('pay-btn');
             const originalText = payBtn.innerText;
             payBtn.disabled = true;
-            payBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Przetwarzanie...';
+            payBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Processing...';
 
             try {
-                // Wywołanie backendu (PUT /pay)
-                // Endpoint jest w ReservationRestController
                 const response = await fetch(`/api/v1/reservations/pay?reservationId=${reservationId}`, {
                     method: 'PUT'
                 });
 
                 if (response.ok) {
-                    // SUKCES: Przekierowanie do szczegółów rezerwacji (strona sukcesu)
                     window.location.href = `/profile/reservation/${reservationId}?success=true`;
                 } else {
-                    // Obsługa błędów (np. czas minął)
                     const errorText = await response.text();
-                    alert("Błąd płatności: " + (errorText || "Spróbuj ponownie."));
+                    alert("Payment Error: " + (errorText || "Please try again."));
                     payBtn.disabled = false;
                     payBtn.innerText = originalText;
                 }
             } catch (e) {
                 console.error(e);
-                alert("Błąd sieci");
+                alert("Network error occurred.");
                 payBtn.disabled = false;
                 payBtn.innerText = originalText;
             }
         }
 
-        // --- 5. ANULOWANIE ---
+        /**
+         * Full Reservation Cancellation
+         */
         async function cancelReservation() {
-            if(confirm("Czy na pewno anulować całą rezerwację?")) {
+            if(confirm("Are you sure you want to cancel the entire reservation?")) {
                 try {
                     const response = await fetch(`/api/v1/reservations/${reservationId}`, {
                         method: 'DELETE'
                     });
 
                     if (response.ok) {
-                        alert("Rezerwacja anulowana.");
+                        alert("Reservation cancelled successfully.");
                         window.location.href = "/";
                     } else {
-                        alert("Błąd podczas anulowania rezerwacji.");
+                        alert("Error while cancelling reservation.");
                     }
                 } catch (e) {
-                    console.error("Błąd sieci:", e);
-                    alert("Błąd połączenia podczas anulowania.");
+                    console.error("Network error:", e);
+                    alert("Connection error during cancellation.");
                 }
             }
         }
 
-
-        // --- HELPER UI ---
+        // Helper function to update total and count labels without reload
         function updateSummaryUI(summary) {
             if(summary) {
                 if(summary.totalPrice !== undefined) {
-                    document.getElementById('summary-total').innerText = summary.totalPrice.toFixed(2) + ' zł';
+                    document.getElementById('summary-total').innerText = summary.totalPrice.toFixed(2) + ' USD';
                 }
                 if(summary.ticketCount !== undefined) {
                     document.getElementById('summary-count').innerText = summary.ticketCount;

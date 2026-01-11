@@ -24,7 +24,7 @@ public class MovieController {
      */
     @GetMapping
     public String moviesView() {
-        return "movie";
+        return "movies/list";
     }
 
     /**
@@ -37,6 +37,6 @@ public class MovieController {
     public String movieDetailView(@PathVariable Long movieId, Model model) {
         MovieDto movie = movieService.getMovieById(movieId);
         model.addAttribute("movie", movie);
-        return "movie-detail";
+        return "movies/details";
     }
 }

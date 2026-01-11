@@ -1,50 +1,62 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layout}">
+      layout:decorate="~{fragments/layout}">
 <head>
-    <title>Zarządzanie Filmami</title>
+    <title>Movie Management</title>
 </head>
 <body>
 
 <div layout:fragment="content">
+    <!--
+      - Movie Management Container
+    -->
     <div class="container mx-auto px-6 py-12">
 
+        <!-- Header Section -->
         <div class="flex justify-between items-center mb-8">
-            <h1 class="text-3xl font-bold font-serif text-white border-l-4 border-cinema-accent pl-4">ZARZĄDZANIE FILMAMI</h1>
+            <h1 class="text-3xl font-bold font-serif text-white border-l-4 border-cinema-accent pl-4 uppercase">
+                Movie Management
+            </h1>
 
             <a th:href="@{/admin/movies/add}" class="bg-cinema-accent hover:bg-cinema-accentHover text-white px-6 py-2 rounded font-bold transition shadow-lg no-underline">
-                <i class="fas fa-plus mr-2"></i> Dodaj Film
+                <i class="fas fa-plus mr-2"></i> Add Movie
             </a>
         </div>
 
+        <!--
+          - Movies Data Table
+        -->
         <div class="bg-cinema-dark rounded-xl border border-gray-800 overflow-hidden shadow-2xl">
             <table class="w-full text-left text-gray-400">
                 <thead class="bg-black text-cinema-gold uppercase font-bold text-sm">
                 <tr>
                     <th class="p-4">ID</th>
-                    <th class="p-4">Tytuł</th>
-                    <th class="p-4">Gatunek</th>
-                    <th class="p-4">Czas</th>
-                    <th class="p-4 text-center">Akcje</th>
+                    <th class="p-4">Title</th>
+                    <th class="p-4">Genre</th>
+                    <th class="p-4">Duration</th>
+                    <th class="p-4 text-center">Actions</th>
                 </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-800">
+                <!-- Iterate through movie content page -->
                 <tr th:each="movie : ${movies.content}" class="hover:bg-white/5 transition">
                     <td class="p-4 text-sm" th:text="${movie.id}">1</td>
-                    <td class="p-4 text-white font-bold" th:text="${movie.title}">Tytuł</td>
+                    <td class="p-4 text-white font-bold" th:text="${movie.title}">Movie Title</td>
                     <td class="p-4">
-                        <span class="bg-gray-800 px-2 py-1 rounded text-xs border border-gray-600" th:text="${movie.genre}">Akcja</span>
+                        <span class="bg-gray-800 px-2 py-1 rounded text-xs border border-gray-600" th:text="${movie.genre}">Action</span>
                     </td>
                     <td class="p-4" th:text="${movie.durationMin} + ' min'">120 min</td>
                     <td class="p-4 text-center flex justify-center gap-3">
 
+                        <!-- Edit Action -->
                         <a th:href="@{/admin/movies/edit/{id}(id=${movie.id})}" class="text-blue-400 hover:text-blue-300 transition">
                             <i class="fas fa-edit"></i>
                         </a>
 
+                        <!-- Delete Action with confirmation -->
                         <form th:action="@{/admin/movies/delete/{id}(id=${movie.id})}" method="post"
-                              onsubmit="return confirm('Czy na pewno chcesz usunąć ten film?');">
+                              onsubmit="return confirm('Are you sure you want to delete this movie?');">
                             <button type="submit" class="text-red-500 hover:text-red-400 transition bg-transparent border-0 cursor-pointer">
                                 <i class="fas fa-trash"></i>
                             </button>
@@ -52,25 +64,32 @@
                     </td>
                 </tr>
 
+                <!-- Empty State -->
                 <tr th:if="${movies.empty}">
-                    <td colspan="5" class="p-8 text-center text-gray-500">Brak filmów w bazie.</td>
+                    <td colspan="5" class="p-8 text-center text-gray-500">No movies found in the database.</td>
                 </tr>
                 </tbody>
             </table>
         </div>
 
+        <!--
+          - Pagination Controls
+        -->
         <div class="flex justify-center gap-4 mt-8 items-center" th:if="${movies.totalPages > 1}">
 
+            <!-- Previous Page -->
             <a th:href="@{/admin/movies(page=${movies.number - 1})}"
                th:classappend="${movies.first} ? 'opacity-50 pointer-events-none' : ''"
                class="text-white hover:text-cinema-accent text-xl">
                 <i class="fas fa-chevron-left"></i>
             </a>
 
+            <!-- Page Indicator -->
             <span class="text-gray-400 text-sm">
-                Strona <span th:text="${movies.number + 1}">1</span> z <span th:text="${movies.totalPages}">10</span>
+                Page <span th:text="${movies.number + 1}">1</span> of <span th:text="${movies.totalPages}">10</span>
             </span>
 
+            <!-- Next Page -->
             <a th:href="@{/admin/movies(page=${movies.number + 1})}"
                th:classappend="${movies.last} ? 'opacity-50 pointer-events-none' : ''"
                class="text-white hover:text-cinema-accent text-xl">
@@ -79,6 +98,15 @@
         </div>
     </div>
 </div>
+
+<script>
+    /**
+     * Movie List Initialization
+     */
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('Movie management list initialized.');
+    });
+</script>
 
 </body>
 </html>

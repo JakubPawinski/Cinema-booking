@@ -2,9 +2,11 @@ package cinema.booking.cinemabooking.controller.view.common;
 
 import cinema.booking.cinemabooking.dto.request.UserDto;
 import cinema.booking.cinemabooking.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,7 +28,7 @@ public class AuthController {
      */
     @GetMapping("/login")
     public String loginView() {
-        return "login";
+        return "auth/login";
     }
 
     /**
@@ -37,7 +39,7 @@ public class AuthController {
     @GetMapping("/register")
     public String registerView(Model model) {
         model.addAttribute("user", new UserDto());
-        return "register";
+        return "auth/register";
     }
 
     /**
@@ -48,7 +50,12 @@ public class AuthController {
      * @return redirect to login on success, registration view on failure
      */
     @PostMapping("/register")
-    public String registerUser(Model model, @ModelAttribute("user") UserDto dto, RedirectAttributes redirectAttributes) {
+    public String registerUser(Model model, @Valid @ModelAttribute("user") UserDto dto, BindingResult result, RedirectAttributes redirectAttributes) {
+        if (result.hasErrors()) {
+            log.warn("Auth: Registration validation failed for user: {}", dto.getUsername());
+            return "auth/register";
+        }
+
         try {
             log.info("Auth: Registering user with username: {}", dto.getUsername());
 
@@ -60,8 +67,8 @@ public class AuthController {
         } catch (RuntimeException e) {
             log.warn("Auth: Registration failed for user: {}: {}", dto.getUsername(), e.getMessage());
 
-            model.addAttribute("error", e.getMessage());
-            return "register";
+            result.rejectValue("username", "error.user", e.getMessage());
+            return "auth/register";
         }
     }
 }

@@ -1,117 +1,137 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layout}">
+      layout:decorate="~{fragments/layout}">
 <head>
-    <title th:text="${isEdit} ? 'Edytuj Film' : 'Dodaj Film'">Formularz Filmu</title>
+    <title th:text="${isEdit} ? 'Edit Movie' : 'Add Movie'">Movie Form</title>
 </head>
 <body>
 
 <div layout:fragment="content">
     <div class="container mx-auto px-6 py-12 max-w-3xl">
 
+        <!-- Header Section: Displays dynamic title based on the action (Create/Edit) -->
         <h1 class="text-3xl font-bold font-serif text-white mb-8 border-l-4 border-cinema-accent pl-4"
-            th:text="${isEdit} ? 'EDYTUJ FILM #' + ${movieId} : 'DODAJ NOWY FILM'">
-            NAGŁÓWEK
+            th:text="${isEdit} ? 'EDIT MOVIE #' + ${movieId} : 'ADD NEW MOVIE'">
+            HEADER
         </h1>
 
+        <!--
+            Main Movie Form
+        -->
         <form th:action="${isEdit} ? @{/admin/movies/edit/{id}(id=${movieId})} : @{/admin/movies/add}"
               th:object="${movie}"
               method="post"
               enctype="multipart/form-data"
               class="space-y-6 bg-cinema-dark p-8 rounded-xl border border-gray-800 shadow-2xl">
 
+            <!-- Primary Information Grid (Title & Genre) -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label class="block text-gray-400 mb-2 text-sm">Tytuł</label>
+                    <label class="block text-gray-400 mb-2 text-sm">Title</label>
                     <input type="text" th:field="*{title}" required
                            class="w-full bg-black border border-gray-700 rounded p-3 text-white focus:border-cinema-accent focus:outline-none">
                 </div>
                 <div>
-                    <label class="block text-gray-400 mb-2 text-sm">Gatunek</label>
+                    <label class="block text-gray-400 mb-2 text-sm">Genre</label>
                     <input type="text" th:field="*{genre}" required
                            class="w-full bg-black border border-gray-700 rounded p-3 text-white focus:border-cinema-accent focus:outline-none">
                 </div>
             </div>
 
+            <!-- Technical Details (Duration & Rating) -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label class="block text-gray-400 mb-2 text-sm">Czas trwania (min)</label>
+                    <label class="block text-gray-400 mb-2 text-sm">Duration (min)</label>
                     <input type="number" th:field="*{durationMin}" required
                            class="w-full bg-black border border-gray-700 rounded p-3 text-white focus:border-cinema-accent focus:outline-none">
                 </div>
                 <div>
-                    <label class="block text-gray-400 mb-2 text-sm">Kategoria Wiekowa</label>
-                    <input type="text" th:field="*{ageRating}" placeholder="np. 16+"
+                    <label class="block text-gray-400 mb-2 text-sm">Age Rating</label>
+                    <input type="text" th:field="*{ageRating}" placeholder="e.g., 16+"
                            class="w-full bg-black border border-gray-700 rounded p-3 text-white focus:border-cinema-accent focus:outline-none">
                 </div>
             </div>
 
+            <!-- Production Info (Director & Cast) -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label class="block text-gray-400 mb-2 text-sm">Reżyser</label>
+                    <label class="block text-gray-400 mb-2 text-sm">Director</label>
                     <input type="text" th:field="*{director}"
                            class="w-full bg-black border border-gray-700 rounded p-3 text-white focus:border-cinema-accent focus:outline-none">
                 </div>
                 <div>
-                    <label class="block text-gray-400 mb-2 text-sm">Obsada (po przecinku)</label>
+                    <label class="block text-gray-400 mb-2 text-sm">Cast (comma separated)</label>
                     <input type="text" th:field="*{mainCast}"
                            class="w-full bg-black border border-gray-700 rounded p-3 text-white focus:border-cinema-accent focus:outline-none">
                 </div>
             </div>
 
+            <!-- Description Area -->
             <div>
-                <label class="block text-gray-400 mb-2 text-sm">Opis</label>
+                <label class="block text-gray-400 mb-2 text-sm">Description</label>
                 <textarea th:field="*{description}" rows="4" required
                           class="w-full bg-black border border-gray-700 rounded p-3 text-white focus:border-cinema-accent focus:outline-none"></textarea>
             </div>
 
+            <!-- Media Section: Poster Upload and Trailer Link -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
 
                 <div class="bg-black/30 p-4 rounded border border-gray-800">
-                    <label class="block text-gray-400 mb-3 text-sm font-bold">Plakat filmowy</label>
+                    <label class="block text-gray-400 mb-3 text-sm font-bold">Movie Poster</label>
 
                     <div class="mb-4">
-                        <span class="text-xs text-gray-500 block mb-1">Opcja 1: Prześlij plik z dysku</span>
+                        <span class="text-xs text-gray-500 block mb-1">Option 1: Upload from disk</span>
                         <input type="file" th:field="*{imageFile}" accept="image/*"
                                class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-gray-800 file:text-white hover:file:bg-cinema-accent transition cursor-pointer">
                     </div>
 
-                    <div class="text-center text-xs text-gray-600 my-2 font-mono">- LUB -</div>
+                    <div class="text-center text-xs text-gray-600 my-2 font-mono">- OR -</div>
 
                     <div class="mb-2">
-                        <span class="text-xs text-gray-500 block mb-1">Opcja 2: Link URL</span>
+                        <span class="text-xs text-gray-500 block mb-1">Option 2: URL Link</span>
                         <input type="text" th:field="*{imageUrl}" placeholder="https://..."
                                class="w-full bg-black border border-gray-700 rounded p-2 text-sm text-white focus:border-cinema-accent focus:outline-none">
                     </div>
 
+                    <!-- Poster Preview (Visible during edit if URL exists) -->
                     <div th:if="${isEdit and movie.imageUrl != null and !#strings.isEmpty(movie.imageUrl)}" class="mt-4 pt-4 border-t border-gray-800">
-                        <p class="text-xs text-gray-500 mb-2">Obecny plakat:</p>
+                        <p class="text-xs text-gray-500 mb-2">Current poster:</p>
                         <div class="relative w-32 h-48 overflow-hidden rounded border border-gray-700 group">
-                            <img th:src="${movie.imageUrl}" alt="Podgląd" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                            <img th:src="${movie.imageUrl}" alt="Preview" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
                         </div>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-gray-400 mb-2 text-sm">URL Zwiastuna (YouTube)</label>
+                    <label class="block text-gray-400 mb-2 text-sm">Trailer URL (YouTube)</label>
                     <input type="url" th:field="*{trailerUrl}"
                            class="w-full bg-black border border-gray-700 rounded p-3 text-white focus:border-cinema-accent focus:outline-none">
-                    <p class="text-xs text-gray-600 mt-2">Wklej link do filmu na YouTube (np. https://www.youtube.com/watch?v=...)</p>
+                    <p class="text-xs text-gray-600 mt-2">Paste YouTube video link (e.g., https://www.youtube.com/watch?v=...)</p>
                 </div>
             </div>
 
+            <!-- Form Actions -->
             <div class="flex justify-end gap-4 pt-6 border-t border-gray-800">
                 <a th:href="@{/admin/movies}" class="px-6 py-3 rounded border border-gray-600 text-gray-400 hover:text-white hover:border-white transition no-underline">
-                    Anuluj
+                    Cancel
                 </a>
                 <button type="submit" class="bg-cinema-accent hover:bg-cinema-accentHover text-white px-8 py-3 rounded font-bold transition shadow-lg cursor-pointer border-0">
-                    <span th:text="${isEdit} ? 'Zapisz Zmiany' : 'Dodaj Film'">Zapisz</span>
+                    <span th:text="${isEdit} ? 'Save Changes' : 'Add Movie'">Save</span>
                 </button>
             </div>
         </form>
     </div>
 </div>
+
+<script>
+    /**
+     * Movie Form Initialization
+     */
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('Movie management form initialized.');
+    });
+</script>
 
 </body>
 </html>

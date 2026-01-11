@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+<head>
+    <title>All Movies - Cinema Booking</title>
+</head>
+<body>
+
+<div layout:fragment="content">
+
+    <!--
+        Hero Section: Library Header
+    -->
+    <section class="pt-24 pb-12 bg-cinema-black relative">
+        <div class="absolute inset-0 bg-gradient-to-b from-purple-900/20 to-cinema-black pointer-events-none"></div>
+        <div class="container mx-auto px-6 relative z-10 text-center">
+            <h1 class="text-4xl md:text-6xl font-bold font-serif mb-4 animate-fade-in-up">
+                Movies we <span class="text-cinema-accent">play</span>
+            </h1>
+            <p class="text-gray-400 text-lg max-w-2xl mx-auto">
+                Explore our full cinematic collection. From blockbusters to indie masterpieces.
+            </p>
+        </div>
+    </section>
+
+    <!-- Main Content: Movie Grid and Controls -->
+    <section class="pb-20 bg-cinema-black min-h-screen">
+        <div class="container mx-auto px-6">
+
+            <!-- UI Controls: Search Filter -->
+            <div class="flex justify-end mb-8">
+                <div class="relative">
+                    <input type="text" id="movie-search" placeholder="Search for a movie..."
+                           class="bg-cinema-dark border border-gray-700 text-white rounded-full py-2 px-6 pl-10 focus:outline-none focus:border-cinema-accent focus:ring-1 focus:ring-cinema-accent transition w-64">
+                    <i class="fas fa-search absolute left-4 top-3 text-gray-500"></i>
+                </div>
+            </div>
+
+            <!-- Loading State Indicator -->
+            <div id="loader" class="text-center py-20">
+                <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cinema-accent"></div>
+                <p class="text-gray-400 mt-4 font-medium tracking-wide">Fetching movie library...</p>
+            </div>
+
+            <!-- Dynamic Movies Container -->
+            <div id="movies-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 hidden">
+                <!-- Content injected via JavaScript -->
+            </div>
+
+            <!-- Pagination Interface -->
+            <div id="pagination-controls" class="flex justify-center items-center gap-4 mt-16 hidden">
+                <button id="prev-btn" class="px-6 py-2 rounded-xl border border-gray-700 text-gray-400 hover:text-white hover:border-cinema-accent hover:bg-white/5 transition disabled:opacity-30 disabled:cursor-not-allowed">
+                    <i class="fas fa-chevron-left mr-2"></i> Previous
+                </button>
+                <span id="page-info" class="text-gray-400 font-mono bg-cinema-dark px-4 py-2 rounded-lg border border-white/5">
+                    Page 1 of 1
+                </span>
+                <button id="next-btn" class="px-6 py-2 rounded-xl border border-gray-700 text-gray-400 hover:text-white hover:border-cinema-accent hover:bg-white/5 transition disabled:opacity-30 disabled:cursor-not-allowed">
+                    Next <i class="fas fa-chevron-right ml-2"></i>
+                </button>
+            </div>
+
+        </div>
+    </section>
+
+    <script th:inline="javascript">
+        /**
+         * Movie Library Management
+         */
+        let currentPage = 0;
+        const pageSize = 8;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadMovies(currentPage);
+
+            // Pagination Event Listeners
+            document.getElementById('prev-btn').addEventListener('click', () => {
+                if (currentPage > 0) loadMovies(currentPage - 1);
+            });
+
+            document.getElementById('next-btn').addEventListener('click', () => {
+                loadMovies(currentPage + 1);
+            });
+        });
+
+        /**
+         * Fetches movie data from the REST API
+         * @param {number} page - The zero-based index of the page to retrieve
+         */
+        async function loadMovies(page) {
+            const grid = document.getElementById('movies-grid');
+            const loader = document.getElementById('loader');
+            const pagination = document.getElementById('pagination-controls');
+
+            // Reset UI state for pending request
+            loader.classList.remove('hidden');
+            grid.classList.add('hidden');
+            pagination.classList.add('hidden');
+
+            try {
+                const response = await fetch(`/api/v1/movies?page=${page}&size=${pageSize}&sort=id,desc`);
+                if (!response.ok) throw new Error('Network response was not ok');
+
+                const data = await response.json();
+
+                renderMovies(data.content);
+                updatePagination(data);
+
+                // Reveal content after successful load
+                loader.classList.add('hidden');
+                grid.classList.remove('hidden');
+                pagination.classList.remove('hidden');
+
+                // Smooth scroll back to top if navigating between pages
+                if(page !== currentPage) {
+                    window.scrollTo({ top: 200, behavior: 'smooth' });
+                }
+                currentPage = data.number;
+
+            } catch (error) {
+                console.error('Failed to load movies:', error);
+                loader.innerHTML = `
+                    <div class="text-red-500">
+                        <i class="fas fa-exclamation-circle text-4xl mb-4"></i>
+                        <p>Could not load the movie library. Please try again later.</p>
+                    </div>
+                `;
+            }
+        }
+
+        /**
+         * Generates and injects HTML for movie cards
+         * @param {Array} movies - List of movie objects
+         */
+        function renderMovies(movies) {
+            const grid = document.getElementById('movies-grid');
+            grid.innerHTML = '';
+
+            if (movies.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-20 text-center text-gray-500 text-xl italic">No movies found in the database.</div>`;
+                return;
+            }
+
+            movies.forEach(movie => {
+                const imageUrl = movie.imageUrl || 'https://placehold.co/400x600/1a1a1a/FFF?text=No+Cover';
+
+                const card = `
+                    <a href="/movies/${movie.id}" class="group relative rounded-2xl overflow-hidden bg-cinema-dark border border-white/5 shadow-2xl hover:border-cinema-accent/50 transition-all duration-500 block">
+                        <div class="relative h-[400px] overflow-hidden">
+                            <img src="${imageUrl}" alt="${movie.title}" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
+
+                            <!-- Hover Overlay -->
+                            <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-end p-6">
+                                <span class="bg-cinema-accent text-white w-full py-2 rounded-lg font-bold text-center uppercase text-sm tracking-widest shadow-lg">
+                                    View Details
+                                </span>
+                            </div>
+
+                            <!-- Genre Badge -->
+                            <div class="absolute top-4 left-4 bg-cinema-black/70 backdrop-blur-md text-white font-bold text-[10px] px-3 py-1 rounded-full border border-white/10 uppercase tracking-tighter">
+                                ${movie.genre}
+                            </div>
+                        </div>
+
+                        <div class="p-5">
+                            <h3 class="text-lg font-bold mb-2 group-hover:text-cinema-accent transition truncate font-serif text-white" title="${movie.title}">
+                                ${movie.title}
+                            </h3>
+                            <div class="flex items-center gap-4 text-xs text-gray-500">
+                                <span><i class="fas fa-clock text-cinema-accent mr-1"></i> ${movie.durationMin} min</span>
+                                <span><i class="fas fa-star text-cinema-gold mr-1"></i> ${movie.ageRating}</span>
+                            </div>
+                        </div>
+                    </a>
+                `;
+                grid.innerHTML += card;
+            });
+        }
+
+        /**
+         * Updates the state of pagination buttons and info text
+         * @param {Object} pageData - Spring Data Page object metadata
+         */
+        function updatePagination(pageData) {
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const info = document.getElementById('page-info');
+
+            prevBtn.disabled = pageData.first;
+            nextBtn.disabled = pageData.last;
+
+            info.textContent = `Page ${pageData.number + 1} of ${pageData.totalPages}`;
+        }
+    </script>
+
+</div>
+
+</body>
+</html>

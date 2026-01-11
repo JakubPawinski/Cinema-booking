@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+    Global Footer Fragment
+-->
+<footer th:fragment="footer" class="bg-black border-t border-gray-900 pt-16 pb-8 mt-auto">
+    <div class="container mx-auto px-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+
+            <!-- Brand & Mission Statement -->
+            <div>
+                <a th:href="@{/}" class="text-2xl font-serif font-bold italic tracking-wider mb-6 block no-underline">
+                    <span class="text-white">CINEMA</span><span class="text-cinema-accent">BOOKING</span>
+                </a>
+                <p class="text-gray-500 text-sm leading-relaxed">
+                    The best image and sound quality in the city. Experience emotions in a dimension you've never known before.
+                </p>
+            </div>
+
+            <!-- Navigation Links -->
+            <div>
+                <h4 class="text-white font-bold uppercase mb-6 text-sm tracking-wider">Quick Links</h4>
+                <ul class="space-y-3 text-gray-500 text-sm list-none p-0">
+                    <li><a th:href="@{/seances}" class="hover:text-cinema-accent transition no-underline">Movies & Showtimes</a></li>
+                    <li><a th:href="@{/promotions}" class="hover:text-cinema-accent transition no-underline">Special Promotions</a></li>
+                    <li><a th:href="@{/about}" class="hover:text-cinema-accent transition no-underline">About Our Cinema</a></li>
+                </ul>
+            </div>
+
+            <!-- Contact Details -->
+            <div>
+                <h4 class="text-white font-bold uppercase mb-6 text-sm tracking-wider">Contact Us</h4>
+                <ul class="space-y-3 text-gray-500 text-sm list-none p-0">
+                    <li class="flex items-center">
+                        <i class="fas fa-envelope mr-3 text-cinema-accent"></i>
+                        contact@cinemabooking.com
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-phone mr-3 text-cinema-accent"></i>
+                        +48 123 456 789
+                    </li>
+                    <li class="flex items-center text-xs opacity-70">
+                        <i class="fas fa-map-marker-alt mr-3"></i>
+                        123 Cinema Street, Warsaw
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Social Media Integration -->
+            <div>
+                <h4 class="text-white font-bold uppercase mb-6 text-sm tracking-wider">Social Media</h4>
+                <div class="flex space-x-4">
+                    <a href="#" class="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center text-white hover:bg-cinema-accent transition shadow-lg" aria-label="Facebook">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center text-white hover:bg-cinema-accent transition shadow-lg" aria-label="Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center text-white hover:bg-cinema-accent transition shadow-lg" aria-label="Twitter">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Copyright & Credits -->
+        <div class="border-t border-gray-900 pt-8 text-center text-gray-600 text-xs">
+            <p>&copy; <span th:text="${#calendars.year(#calendars.createNow())}">2025</span> Cinema Booking. Developed by <span class="text-gray-400">Jakub Pawiński</span>. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+
+</body>
+</html>

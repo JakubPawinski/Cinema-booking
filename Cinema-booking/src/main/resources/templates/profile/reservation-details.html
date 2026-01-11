@@ -1,43 +1,45 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layout}">
+      layout:decorate="~{fragments/layout}">
 <head>
-  <title>Szczegóły Rezerwacji</title>
+  <title>Reservation Details - Cinema Booking</title>
   <style>
+    /* Cinematic screen projection effect */
     .screen {
-      background: linear-gradient(to bottom, #fff, transparent);
-      opacity: 0.1;
+      background: linear-gradient(to bottom, #9333ea, transparent);
+      opacity: 0.2;
       transform: perspective(600px) rotateX(-20deg) scale(0.9);
-      box-shadow: 0 50px 40px rgba(255,255,255,0.1);
+      box-shadow: 0 50px 40px rgba(147, 51, 234, 0.2);
+      filter: blur(2px);
     }
+    /* Seat base styling */
     .seat {
-      width: 30px;
-      height: 30px;
-      border-top-left-radius: 8px;
-      border-top-right-radius: 8px;
+      width: 32px;
+      height: 32px;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
       font-size: 10px;
+      transition: all 0.3s ease;
     }
-    /* Style dla mapy podglądowej */
-    .seat.available { background-color: #1f2937; color: #4b5563; } /* Ciemny szary */
-    .seat.occupied { background-color: #7f1d1d; color: #fecaca; opacity: 0.5; } /* Ciemny czerwony (inni) */
+    /* Seat status variants */
+    .seat.available { background-color: #1a1a1a; color: #4b5563; border: 1px solid #374151; }
+    .seat.occupied { background-color: #450a0a; color: #991b1b; opacity: 0.4; pointer-events: none; }
     .seat.mine {
-      background-color: #fbbf24;
-      color: black;
-      box-shadow: 0 0 15px rgba(251, 191, 36, 0.5);
-      font-weight: bold;
+      background-color: #9333ea;
+      color: white;
+      box-shadow: 0 0 20px rgba(147, 51, 234, 0.6);
+      font-weight: 800;
       z-index: 10;
-      transform: scale(1.1);
-      border: 1px solid white;
+      transform: scale(1.15);
+      border: 2px solid white;
     }
-    /* Animacja wejścia komunikatu */
+
     @keyframes slideIn {
       from { transform: translateY(-20px); opacity: 0; }
       to { transform: translateY(0); opacity: 1; }
     }
-    .animate-slide-in {
-      animation: slideIn 0.5s ease-out forwards;
-    }
+    .animate-slide-in { animation: slideIn 0.5s ease-out forwards; }
   </style>
 </head>
 <body>
@@ -45,104 +47,103 @@
 <div layout:fragment="content">
   <div class="container mx-auto px-6 py-12">
 
-    <div id="success-alert" class="hidden mb-8 bg-green-900/40 border border-green-500 text-green-100 px-6 py-4 rounded-xl flex items-center shadow-lg animate-slide-in">
-      <div class="bg-green-500/20 p-3 rounded-full mr-4">
-        <i class="fas fa-check text-2xl text-green-400"></i>
+    <!-- Success Feedback Overlay -->
+    <div id="success-alert" class="hidden mb-12 bg-green-500/10 border border-green-500/50 text-green-100 px-8 py-5 rounded-2xl flex items-center shadow-2xl backdrop-blur-md animate-slide-in">
+      <div class="bg-green-500 p-3 rounded-full mr-5 shadow-lg shadow-green-900/40">
+        <i class="fas fa-check text-xl text-white"></i>
       </div>
       <div>
-        <h3 class="font-bold text-lg text-white">Płatność zakończona sukcesem!</h3>
-        <p class="text-sm text-green-200 opacity-90">Twoje miejsca zostały zarezerwowane na stałe. Poniżej znajdziesz swoje bilety.</p>
+        <h3 class="font-bold text-lg text-white">Payment Successful!</h3>
+        <p class="text-sm text-green-400">Your seats are confirmed. You can now download your digital tickets below.</p>
       </div>
-      <button onclick="this.parentElement.remove()" class="ml-auto text-green-300 hover:text-white">
-        <i class="fas fa-times"></i>
+      <button onclick="this.parentElement.remove()" class="ml-auto text-green-500 hover:text-white transition">
+        <i class="fas fa-times text-xl"></i>
       </button>
     </div>
 
-    <a href="/profile" class="inline-flex items-center text-gray-400 hover:text-white mb-6 transition no-underline">
-      <i class="fas fa-arrow-left mr-2"></i> Wróć do listy
+    <!-- Navigation Breadcrumb -->
+    <a href="/profile" class="inline-flex items-center text-gray-500 hover:text-cinema-accent mb-10 transition-all font-bold uppercase text-xs tracking-widest no-underline">
+      <i class="fas fa-chevron-left mr-2"></i> Back to Profile
     </a>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
 
-      <div class="lg:col-span-1 space-y-6">
+      <!-- Left Panel: Summary & Tickets -->
+      <div class="lg:col-span-1 space-y-8">
 
-        <div class="bg-cinema-dark p-6 rounded-xl border border-gray-800 shadow-xl">
-
-          <div th:if="${reservation.reservationCode != null}" class="mb-6 text-center bg-black/30 p-4 rounded-lg border border-white/10">
-            <p class="text-xs text-gray-500 uppercase tracking-widest mb-1">Numer Rezerwacji</p>
-            <p class="text-xl md:text-2xl font-mono text-cinema-accent font-bold tracking-wide break-all"
-               th:text="${reservation.reservationCode}">CODE</p>
+        <!-- Reservation Metadata Card -->
+        <div class="bg-cinema-dark p-8 rounded-3xl border border-white/5 shadow-2xl relative overflow-hidden">
+          <div class="absolute top-0 right-0 p-4 opacity-5">
+            <i class="fas fa-receipt text-6xl"></i>
           </div>
 
-          <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold text-white">Szczegóły</h2>
-            <span class="font-mono text-gray-600 text-xs">ID: #<span th:text="${reservation.id}">123</span></span>
+          <div th:if="${reservation.reservationCode != null}" class="mb-8 text-center bg-black/40 p-5 rounded-2xl border border-dashed border-white/10">
+            <p class="text-[10px] text-gray-500 uppercase tracking-widest mb-2">Unique Booking ID</p>
+            <p class="text-2xl font-mono text-cinema-accent font-black tracking-tighter" th:text="${reservation.reservationCode}">CODE</p>
           </div>
 
-          <div class="space-y-3 text-sm">
-            <div class="flex justify-between">
-              <span class="text-gray-500">Data seansu:</span>
-              <span class="text-white" th:if="${!reservation.tickets.empty}"
-                    th:text="${#temporals.format(reservation.tickets[0].seance.startTime, 'dd.MM.yyyy HH:mm')}">Data</span>
+          <div class="flex justify-between items-end mb-6">
+            <h2 class="text-2xl font-bold text-white font-serif">Details</h2>
+            <span class="font-mono text-gray-600 text-[10px] tracking-widest uppercase">System Ref: #<span th:text="${reservation.id}">123</span></span>
+          </div>
+
+          <div class="space-y-4 text-sm">
+            <div class="flex flex-col">
+              <span class="text-gray-500 text-[10px] uppercase font-bold tracking-widest mb-1">Date & Time</span>
+              <span class="text-white text-lg font-medium" th:if="${!reservation.tickets.empty}"
+                    th:text="${#temporals.format(reservation.tickets[0].seance.startTime, 'EEEE, MMM dd • HH:mm')}">Date</span>
             </div>
-            <div class="flex justify-between">
-              <span class="text-gray-500">Film:</span>
-              <span class="text-white font-bold" th:if="${!reservation.tickets.empty}"
+
+            <div class="flex flex-col">
+              <span class="text-gray-500 text-[10px] uppercase font-bold tracking-widest mb-1">Movie Title</span>
+              <span class="text-cinema-gold text-xl font-bold font-serif" th:if="${!reservation.tickets.empty}"
                     th:text="${reservation.tickets[0].seance.movie.title}">Film</span>
             </div>
-            <div class="flex justify-between">
-              <span class="text-gray-500">Sala:</span>
-              <span class="text-white" th:if="${!reservation.tickets.empty}"
-                    th:text="${reservation.tickets[0].seance.cinemaRoom.name}">Sala</span>
-            </div>
-            <div class="border-t border-gray-700 my-2"></div>
-            <div class="flex justify-between items-center">
-              <span class="text-gray-500">Status:</span>
-              <span th:if="${reservation.status.name() == 'PAID'}" class="text-green-400 font-bold flex items-center gap-2">
-                  <i class="fas fa-check-circle"></i> OPŁACONA
-              </span>
-              <span th:if="${reservation.status.name() == 'PENDING'}" class="text-yellow-400 font-bold flex items-center gap-2">
-                  <i class="fas fa-clock"></i> OCZEKUJE
-              </span>
-              <span th:if="${reservation.status.name() == 'CANCELLED'}" class="text-red-400 font-bold flex items-center gap-2">
-                  <i class="fas fa-times-circle"></i> ANULOWANA
-              </span>
+
+            <div class="flex justify-between items-center py-4 border-y border-white/5">
+              <span class="text-gray-500 text-[10px] uppercase font-bold tracking-widest">Status</span>
+              <span th:if="${reservation.status.name() == 'PAID'}" class="px-3 py-1 bg-green-500/10 text-green-400 text-[10px] font-black rounded-full border border-green-500/20 uppercase tracking-widest">Confirmed</span>
+              <span th:if="${reservation.status.name() == 'PENDING'}" class="px-3 py-1 bg-cinema-gold/10 text-cinema-gold text-[10px] font-black rounded-full border border-cinema-gold/20 uppercase tracking-widest">Pending</span>
             </div>
           </div>
 
-          <div th:if="${reservation.status.name() == 'PENDING'}" class="mt-6">
-            <a th:href="@{/booking/payment/{id}(id=${reservation.id})}" class="block w-full bg-green-600 hover:bg-green-700 text-white text-center py-3 rounded font-bold transition shadow-lg hover:shadow-green-900/20 no-underline">
-              Dokończ płatność <i class="fas fa-arrow-right ml-2"></i>
+          <!-- Actions -->
+          <div class="mt-8 space-y-3">
+            <a th:if="${reservation.status.name() == 'PENDING'}" th:href="@{/booking/payment/{id}(id=${reservation.id})}"
+               class="block w-full bg-cinema-accent hover:bg-cinema-accentHover text-white text-center py-4 rounded-xl font-bold transition shadow-lg shadow-purple-900/30 no-underline uppercase tracking-widest text-xs">
+              Complete Secure Payment
             </a>
-          </div>
-          <div th:if="${reservation.status.name() == 'PAID'}" class="mt-6">
-            <a th:href="@{/api/v1/reservations/{id}/pdf(id=${reservation.id})}"
+            <a th:if="${reservation.status.name() == 'PAID'}" th:href="@{/api/v1/reservations/{id}/pdf(id=${reservation.id})}"
                target="_blank"
-               class="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-3 rounded font-bold transition shadow-lg no-underline group">
-              <i class="fas fa-file-pdf mr-2 group-hover:scale-110 transition"></i> Pobierz Bilety (PDF)
+               class="block w-full bg-white/10 hover:bg-white/20 text-white text-center py-4 rounded-xl font-bold transition shadow-lg no-underline group uppercase tracking-widest text-xs">
+              <i class="fas fa-file-pdf mr-2 group-hover:text-red-500 transition"></i> Print E-Tickets
             </a>
           </div>
         </div>
 
-        <div class="bg-cinema-dark p-6 rounded-xl border border-gray-800 shadow-xl">
-          <h3 class="text-white font-bold mb-4 border-l-4 border-cinema-accent pl-3">Twoje Bilety</h3>
+        <!-- Ticket Stubs List -->
+        <div class="bg-cinema-dark/60 p-8 rounded-3xl border border-white/5 shadow-2xl">
+          <h3 class="text-white font-bold mb-6 flex items-center gap-3">
+            <span class="w-1.5 h-6 bg-cinema-accent rounded-full"></span>
+            Seat Assignments
+          </h3>
 
-          <div class="space-y-3">
-            <div th:each="ticket : ${reservation.tickets}" class="bg-black/40 p-3 rounded border border-gray-700 flex justify-between items-center group hover:border-gray-600 transition">
-              <div class="flex items-center gap-3">
+          <div class="space-y-4">
+            <div th:each="ticket : ${reservation.tickets}" class="bg-black/40 p-4 rounded-2xl border border-white/5 flex justify-between items-center group">
+              <div class="flex items-center gap-5">
                 <div class="text-center">
-                  <div class="text-[10px] text-gray-500 uppercase tracking-wider">Rząd</div>
-                  <div class="font-bold text-white text-lg" th:text="${ticket.seat.rowNumber}">1</div>
+                  <div class="text-[10px] text-gray-500 uppercase font-black">Row</div>
+                  <div class="font-bold text-white text-xl" th:text="${ticket.seat.rowNumber}">1</div>
                 </div>
                 <div class="text-center">
-                  <div class="text-[10px] text-gray-500 uppercase tracking-wider">Miejsce</div>
-                  <div class="font-bold text-cinema-accent text-lg" th:text="${ticket.seat.seatNumber}">5</div>
+                  <div class="text-[10px] text-gray-500 uppercase font-black">Seat</div>
+                  <div class="font-bold text-cinema-accent text-xl" th:text="${ticket.seat.seatNumber}">5</div>
                 </div>
               </div>
               <div class="text-right">
-                <div class="text-xs font-bold text-gray-400 uppercase tracking-wide" th:text="${ticket.ticketType}">NORMALNY</div>
-                <div th:if="${ticket.ticketCode != null}" class="text-xs font-mono text-green-400 mt-1 bg-green-900/20 px-2 py-1 rounded border border-green-900/30">
-                  <i class="fas fa-qrcode mr-1"></i> <span th:text="${#strings.substring(ticket.ticketCode,0,8)}">CODE</span>...
+                <div class="text-[10px] font-bold text-gray-400 uppercase bg-gray-800 px-2 py-0.5 rounded" th:text="${ticket.ticketType}">STANDARD</div>
+                <div th:if="${ticket.ticketCode != null}" class="text-[9px] font-mono text-green-400 mt-2 flex items-center gap-1">
+                  <i class="fas fa-barcode"></i> <span th:text="${#strings.substring(ticket.ticketCode, 0, 8)}">CODE</span>
                 </div>
               </div>
             </div>
@@ -150,28 +151,34 @@
         </div>
       </div>
 
+      <!-- Right Panel: Interactive Room Preview -->
       <div class="lg:col-span-2">
-        <div class="bg-gray-900 p-8 rounded-xl border border-gray-800 shadow-2xl h-full flex flex-col justify-center relative overflow-hidden">
+        <div class="bg-gradient-to-br from-cinema-dark to-black p-10 rounded-3xl border border-white/5 shadow-2xl h-full flex flex-col items-center relative overflow-hidden">
 
-          <div class="absolute top-0 right-0 w-64 h-64 bg-purple-600/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+          <div class="absolute top-0 right-0 w-96 h-96 bg-cinema-accent/5 rounded-full blur-[120px] -mr-48 -mt-48"></div>
 
-          <h3 class="text-center text-gray-400 text-sm uppercase tracking-widest mb-2 relative z-10">Plan Sali</h3>
+          <h3 class="text-gray-500 text-[10px] uppercase font-black tracking-[0.3em] mb-12">Theater Orientation</h3>
 
-          <h2 class="text-center text-2xl font-bold text-white mb-8 relative z-10"
-              th:if="${!reservation.tickets.empty}"
-              th:text="${reservation.tickets[0].seance.cinemaRoom.name}">Sala</h2>
+          <div class="w-full max-w-2xl">
+            <!-- Movie Screen -->
+            <div class="flex flex-col items-center mb-16 px-10">
+              <div class="screen h-2 w-full mb-4"></div>
+              <span class="text-[10px] text-gray-700 uppercase tracking-[0.5em] font-bold">Cinema Screen Perspective</span>
+            </div>
 
-          <div class="flex justify-center mb-8 relative z-10">
-            <div class="screen h-8 w-2/3 bg-white shadow-[0_20px_50px_rgba(255,255,255,0.1)]"></div>
+            <!-- Seat Grid Container -->
+            <div id="seat-grid" class="flex flex-col items-center gap-3 mb-12">
+              <div class="flex items-center gap-4 text-cinema-accent opacity-50 italic">
+                <i class="fas fa-circle-notch animate-spin"></i> Rendering Room Layout...
+              </div>
+            </div>
           </div>
 
-          <div id="seat-grid" class="flex flex-col items-center gap-2 mb-8 relative z-10">
-            <div class="text-cinema-accent animate-pulse">Ładowanie mapy...</div>
-          </div>
-
-          <div class="flex justify-center gap-6 text-xs text-gray-500 mt-auto relative z-10">
-            <div class="flex items-center gap-2"><div class="w-3 h-3 bg-yellow-500 rounded"></div> Twoje miejsce</div>
-            <div class="flex items-center gap-2"><div class="w-3 h-3 bg-red-900 rounded opacity-50"></div> Zajęte przez innych</div>
+          <!-- Legend -->
+          <div class="mt-auto flex flex-wrap justify-center gap-8 text-[10px] text-gray-500 font-black uppercase tracking-widest border-t border-white/5 pt-8 w-full">
+            <div class="flex items-center gap-3"><div class="w-4 h-4 bg-cinema-accent rounded-md shadow-lg shadow-purple-900/40"></div> Your Selection</div>
+            <div class="flex items-center gap-3"><div class="w-4 h-4 bg-red-900/40 rounded-md"></div> Occupied Seats</div>
+            <div class="flex items-center gap-3"><div class="w-4 h-4 bg-cinema-black border border-gray-700 rounded-md"></div> Available</div>
           </div>
 
         </div>
@@ -180,23 +187,12 @@
   </div>
 
   <script th:inline="javascript">
-    // ZMIANA: Pobieramy ID seansu z pierwszego biletu rezerwacji
-    // Jeśli lista biletów pusta (edge case), ustawiamy 0
+    /**
+     * Data Extraction from Thymeleaf for API consumption
+     */
     const seanceId = /*[[${reservation.tickets.empty ? 0 : reservation.tickets[0].seance.id}]]*/ 0;
 
-    // --- OBSŁUGA KOMUNIKATU SUKCESU ---
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('success') === 'true') {
-      const alertBox = document.getElementById('success-alert');
-      if(alertBox) alertBox.classList.remove('hidden');
-
-      // Wyczyść URL
-      const newUrl = window.location.pathname;
-      window.history.replaceState({}, document.title, newUrl);
-    }
-    // ----------------------------------
-
-    // Generujemy listę ID moich miejsc z Thymeleaf do JS
+    // Process seat logic for the current user
     /*[+
     const mySeatIds = [
         [# th:each="ticket : ${reservation.tickets}"]
@@ -206,25 +202,40 @@
     +]*/
     const safeMySeatIds = (typeof mySeatIds !== 'undefined') ? mySeatIds : [];
 
+    // Success notification handler
     document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('success') === 'true') {
+        const alertBox = document.getElementById('success-alert');
+        if(alertBox) alertBox.classList.remove('hidden');
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+
       if(seanceId > 0) fetchSeats();
     });
 
+    /**
+     * Fetch room status via REST API
+     */
     async function fetchSeats() {
       try {
         const response = await fetch(`/api/v1/seances/${seanceId}/seats`);
         const seats = await response.json();
         renderGrid(seats);
       } catch (e) {
-        console.error(e);
-        document.getElementById('seat-grid').innerHTML = '<p class="text-red-500">Błąd mapy.</p>';
+        console.error('Grid load error:', e);
+        document.getElementById('seat-grid').innerHTML = '<p class="text-red-500 text-xs">Failed to load interactive map.</p>';
       }
     }
 
+    /**
+     * Render UI Seat Grid
+     */
     function renderGrid(seats) {
       const grid = document.getElementById('seat-grid');
       grid.innerHTML = '';
 
+      // Regroup seats by rows for structural rendering
       const rows = {};
       seats.forEach(seat => {
         if (!rows[seat.rowNumber]) rows[seat.rowNumber] = [];
@@ -233,7 +244,7 @@
 
       Object.keys(rows).forEach(rowNum => {
         const rowDiv = document.createElement('div');
-        rowDiv.className = 'flex gap-2 items-center';
+        rowDiv.className = 'flex gap-2.5 items-center';
 
         rows[rowNum].forEach(seat => {
           const seatDiv = document.createElement('div');
@@ -241,6 +252,7 @@
 
           if (safeMySeatIds.includes(seat.id)) {
             className += 'mine';
+            seatDiv.title = "Verified Ticket: Seat " + seat.seatNumber;
           } else if (seat.occupied) {
             className += 'occupied';
           } else {
@@ -249,11 +261,6 @@
 
           seatDiv.className = className;
           seatDiv.innerText = seat.seatNumber;
-
-          if (safeMySeatIds.includes(seat.id)) {
-            seatDiv.title = "Twój bilet";
-          }
-
           rowDiv.appendChild(seatDiv);
         });
 

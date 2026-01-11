@@ -1,34 +1,44 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layout}">
+      layout:decorate="~{fragments/layout}">
 <head>
-    <title>Panel Administratora</title>
+    <title>Admin Dashboard</title>
 </head>
 <body>
 
 <div layout:fragment="content">
+    <!--
+      - Main Content Wrapper
+    -->
     <div class="container mx-auto px-6 py-12">
 
+        <!--
+          - Dashboard Header Section
+        -->
         <div class="flex flex-col md:flex-row justify-between items-center mb-12">
             <div>
-                <h1 class="text-3xl font-bold font-serif text-white border-l-4 border-cinema-accent pl-4">
-                    PANEL ADMINISTRATORA
+                <h1 class="text-3xl font-bold font-serif text-white border-l-4 border-cinema-accent pl-4 uppercase">
+                    Admin Dashboard
                 </h1>
-                <p class="text-gray-400 mt-2 pl-5">Zarządzaj kinem z jednego miejsca.</p>
+                <p class="text-gray-400 mt-2 pl-5">Manage your cinema operations from a single central hub.</p>
             </div>
 
             <div class="mt-4 md:mt-0">
                 <span class="bg-gray-800 text-gray-300 px-4 py-2 rounded-full text-sm font-bold border border-gray-700">
-                    <i class="fas fa-user-shield mr-2 text-cinema-accent"></i> Zalogowano jako Admin
+                    <i class="fas fa-user-shield mr-2 text-cinema-accent"></i> Logged in as Admin
                 </span>
             </div>
         </div>
 
+        <!--
+          - Statistics Overview Grid
+        -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <!-- Movie Statistics Card -->
             <div class="bg-cinema-dark p-6 rounded-xl border border-white/5 shadow-lg flex items-center justify-between">
                 <div>
-                    <p class="text-gray-400 text-sm uppercase tracking-wider">Filmy w bazie</p>
+                    <p class="text-gray-400 text-sm uppercase tracking-wider">Movies in Database</p>
                     <h3 class="text-3xl font-bold text-white mt-1" th:text="${moviesCount}">0</h3>
                 </div>
                 <div class="w-12 h-12 rounded-full bg-blue-900/30 flex items-center justify-center text-blue-400">
@@ -36,9 +46,10 @@
                 </div>
             </div>
 
+            <!-- User Statistics Card -->
             <div class="bg-cinema-dark p-6 rounded-xl border border-white/5 shadow-lg flex items-center justify-between">
                 <div>
-                    <p class="text-gray-400 text-sm uppercase tracking-wider">Użytkownicy</p>
+                    <p class="text-gray-400 text-sm uppercase tracking-wider">Active Users</p>
                     <h3 class="text-3xl font-bold text-white mt-1" th:text="${usersCount}">0</h3>
                 </div>
                 <div class="w-12 h-12 rounded-full bg-green-900/30 flex items-center justify-center text-green-400">
@@ -46,9 +57,10 @@
                 </div>
             </div>
 
+            <!-- Reservation Statistics Card -->
             <div class="bg-cinema-dark p-6 rounded-xl border border-white/5 shadow-lg flex items-center justify-between">
                 <div>
-                    <p class="text-gray-400 text-sm uppercase tracking-wider">Wszystkie Rezerwacje</p>
+                    <p class="text-gray-400 text-sm uppercase tracking-wider">Total Reservations</p>
                     <h3 class="text-3xl font-bold text-white mt-1" th:text="${reservationsCount}">0</h3>
                 </div>
                 <div class="w-12 h-12 rounded-full bg-purple-900/30 flex items-center justify-center text-purple-400">
@@ -57,74 +69,77 @@
             </div>
         </div>
 
-        <h2 class="text-xl font-bold text-white mb-6 uppercase tracking-wider">Szybki Dostęp</h2>
+        <h2 class="text-xl font-bold text-white mb-6 uppercase tracking-wider">Quick Actions</h2>
 
+        <!--
+          - Navigation Cards Grid
+        -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
+            <!-- Movie Management Link -->
             <a th:href="@{/admin/movies}"
                class="group bg-gradient-to-br from-gray-800 to-cinema-dark p-8 rounded-2xl border border-white/5 hover:border-cinema-accent hover:shadow-2xl hover:shadow-purple-900/20 transition duration-300 relative overflow-hidden no-underline block">
                 <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition transform group-hover:scale-110">
                     <i class="fas fa-film text-9xl"></i>
                 </div>
-
                 <div class="relative z-10">
                     <div class="w-14 h-14 rounded-lg bg-cinema-accent flex items-center justify-center text-white mb-6 shadow-lg group-hover:scale-110 transition">
                         <i class="fas fa-video text-2xl"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-white mb-2">Filmy</h3>
+                    <h3 class="text-xl font-bold text-white mb-2">Movies</h3>
                     <p class="text-sm text-gray-400 group-hover:text-gray-300 transition">
-                        Dodawaj, edytuj i usuwaj filmy z repertuaru.
+                        Add, edit, and remove movies from the repertoire.
                     </p>
                 </div>
             </a>
 
+            <!-- Seance Scheduling Link -->
             <a th:href="@{/admin/seances}"
                class="group bg-gradient-to-br from-gray-800 to-cinema-dark p-8 rounded-2xl border border-white/5 hover:border-blue-500 hover:shadow-2xl hover:shadow-blue-900/20 transition duration-300 relative overflow-hidden no-underline block">
                 <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition transform group-hover:scale-110">
                     <i class="fas fa-clock text-9xl"></i>
                 </div>
-
                 <div class="relative z-10">
                     <div class="w-14 h-14 rounded-lg bg-blue-600 flex items-center justify-center text-white mb-6 shadow-lg group-hover:scale-110 transition">
                         <i class="fas fa-calendar-alt text-2xl"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-white mb-2">Seanse</h3>
+                    <h3 class="text-xl font-bold text-white mb-2">Seances</h3>
                     <p class="text-sm text-gray-400 group-hover:text-gray-300 transition">
-                        Planuj godziny emisji filmów w salach.
+                        Schedule movie showtimes across cinema halls.
                     </p>
                 </div>
             </a>
 
+            <!-- Reports and Analytics Link -->
             <a href="/admin/reports"
                class="group bg-gradient-to-br from-gray-800 to-cinema-dark p-8 rounded-2xl border border-white/5 hover:border-green-500 hover:shadow-2xl hover:shadow-green-900/20 transition duration-300 relative overflow-hidden no-underline block">
                 <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition transform group-hover:scale-110">
                     <i class="fas fa-chart-line text-9xl"></i>
                 </div>
-
                 <div class="relative z-10">
                     <div class="w-14 h-14 rounded-lg bg-green-600 flex items-center justify-center text-white mb-6 shadow-lg group-hover:scale-110 transition">
                         <i class="fas fa-chart-pie text-2xl"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-white mb-2">Raporty</h3>
+                    <h3 class="text-xl font-bold text-white mb-2">Reports</h3>
                     <p class="text-sm text-gray-400 group-hover:text-gray-300 transition">
-                        Sprawdź przychody i statystyki sprzedaży.
+                        Review revenue metrics and sales statistics.
                     </p>
                 </div>
             </a>
 
+            <!-- User Management Link -->
             <a href="#"
                class="group bg-gradient-to-br from-gray-800 to-cinema-dark p-8 rounded-2xl border border-white/5 hover:border-yellow-500 hover:shadow-2xl hover:shadow-yellow-900/20 transition duration-300 relative overflow-hidden no-underline block">
                 <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition transform group-hover:scale-110">
                     <i class="fas fa-users text-9xl"></i>
                 </div>
-
                 <div class="relative z-10">
                     <div class="w-14 h-14 rounded-lg bg-yellow-600 flex items-center justify-center text-white mb-6 shadow-lg group-hover:scale-110 transition">
                         <i class="fas fa-user-cog text-2xl"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-white mb-2">Użytkownicy</h3>
+                    <h3 class="text-xl font-bold text-white mb-2">Users</h3>
                     <p class="text-sm text-gray-400 group-hover:text-gray-300 transition">
-                        Zarządzaj kontami klientów i pracowników.
+                        Manage customer accounts and staff permissions.
                     </p>
                 </div>
             </a>
@@ -132,6 +147,15 @@
         </div>
     </div>
 </div>
+
+<script>
+    /**
+     * Dashboard Initialization
+     */
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('Admin Dashboard initialized successfully.');
+    });
+</script>
 
 </body>
 </html>

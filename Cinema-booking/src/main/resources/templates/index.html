@@ -1,21 +1,20 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layout}">
+      layout:decorate="~{fragments/layout}">
 <head>
-    <title>Home Page</title>
+    <title>Cinema Palace - Home of Cinema</title>
 </head>
 <body>
 
 <div layout:fragment="content">
-
     <div id="heroCarousel" class="carousel slide carousel-fade w-full block" data-bs-ride="carousel">
         <div class="carousel-inner h-[85vh] relative w-full">
 
+            <!-- Slide 1: Featured Premiere -->
             <div class="carousel-item active h-full w-full">
                 <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=2525')] bg-cover bg-center"></div>
                 <div class="absolute inset-0 bg-gradient-to-t from-cinema-black via-cinema-black/60 to-transparent"></div>
-                <div class="absolute inset-0 bg-gradient-to-r from-cinema-black via-transparent to-transparent"></div>
 
                 <div class="relative container mx-auto px-6 h-full flex items-center pt-20">
                     <div class="max-w-2xl animate-fade-in-up">
@@ -27,53 +26,38 @@
                             <span class="text-transparent bg-clip-text bg-gradient-to-r from-cinema-accent to-pink-500">NEW ERA</span>
                         </h1>
                         <p class="text-gray-300 text-lg mb-8 leading-relaxed drop-shadow-md">
-                            In a world where technology has blurred the lines of humanity, one detective must uncover the truth. See it in IMAX quality.
+                            In a world where technology blurs the lines of humanity, one detective must uncover the truth. Experience it in IMAX.
                         </p>
                         <div class="flex gap-4">
-                            <button onclick="document.getElementById('repertuar').scrollIntoView({behavior: 'smooth'})"
-                                    class="bg-cinema-accent hover:bg-cinema-accentHover border-0 text-white px-8 py-4 rounded font-bold uppercase tracking-wide transition transform hover:scale-105 shadow-lg shadow-purple-900/50 flex items-center gap-2 cursor-pointer">
-                                <i class="fas fa-ticket-alt"></i> Buy Ticket
+                            <button onclick="document.getElementById('repertoire-section').scrollIntoView({behavior: 'smooth'})"
+                                    class="bg-cinema-accent hover:bg-cinema-accentHover border-0 text-white px-8 py-4 rounded-xl font-bold uppercase tracking-wide transition transform hover:scale-105 shadow-lg shadow-purple-900/50 flex items-center gap-2 cursor-pointer">
+                                <i class="fas fa-ticket-alt"></i> Get Tickets
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
 
+            <!-- Slide 2: Promotions -->
             <div class="carousel-item h-full w-full">
                 <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=2070')] bg-cover bg-center"></div>
                 <div class="absolute inset-0 bg-gradient-to-t from-cinema-black via-cinema-black/70 to-transparent"></div>
 
                 <div class="relative container mx-auto px-6 h-full flex items-center pt-20">
                     <div class="max-w-2xl">
-                        <span class="bg-cinema-accent text-white px-3 py-1 rounded text-xs font-bold uppercase tracking-wider mb-4 inline-block">Promotion</span>
+                        <span class="bg-cinema-accent text-white px-3 py-1 rounded text-xs font-bold uppercase tracking-wider mb-4 inline-block">Special Offer</span>
                         <h1 class="text-5xl md:text-7xl font-bold mb-4 font-serif text-white">CHEAP TUESDAYS</h1>
-                        <p class="text-gray-300 text-lg mb-8">Every Tuesday, tickets for all screenings are 50% off! Don't miss the opportunity.</p>
-                        <button onclick="document.getElementById('repertuar').scrollIntoView({behavior: 'smooth'})"
-                                class="bg-transparent border border-white hover:bg-white hover:text-black text-white px-8 py-4 rounded font-bold uppercase transition cursor-pointer">
-                            Check Repertoire
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="carousel-item h-full w-full">
-                <div class="absolute inset-0 bg-[url('https://plus.unsplash.com/premium_photo-1667425092311-80658bb0c05f?q=80&w=1471&auto=format&fit=crop')] bg-cover bg-center"></div>
-                <div class="absolute inset-0 bg-gradient-to-t from-cinema-black via-cinema-black/70 to-transparent"></div>
-
-                <div class="relative container mx-auto px-6 h-full flex items-center pt-20">
-                    <div class="max-w-2xl">
-                        <span class="bg-cinema-accent text-white px-3 py-1 rounded text-xs font-bold uppercase tracking-wider mb-4 inline-block">New</span>
-                        <h1 class="text-5xl md:text-7xl font-bold mb-4 font-serif text-white">HORROR MARATHON</h1>
-                        <p class="text-gray-300 text-lg mb-8">Get ready for a night full of fear! Three terrifying movies in a row at a special price.</p>
-                        <button onclick="document.getElementById('repertuar').scrollIntoView({behavior: 'smooth'})"
-                                class="bg-transparent border border-white hover:bg-white hover:text-black text-white px-8 py-4 rounded font-bold uppercase transition cursor-pointer">
-                            Reserve Seat
+                        <p class="text-gray-300 text-lg mb-8">Every Tuesday all tickets are 50% off! Don't miss out on the cinematic experience.</p>
+                        <button onclick="document.getElementById('repertoire-section').scrollIntoView({behavior: 'smooth'})"
+                                class="bg-transparent border border-white hover:bg-white hover:text-black text-white px-8 py-4 rounded-xl font-bold uppercase transition cursor-pointer">
+                            Check Showtimes
                         </button>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- Carousel Navigation Controls -->
         <button class="carousel-control-prev bg-transparent border-0" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
             <span class="carousel-control-prev-icon opacity-50 hover:opacity-100"></span>
         </button>
@@ -82,171 +66,172 @@
         </button>
     </div>
 
-
-    <section id="repertuar" class="py-20 bg-cinema-black relative w-full">
-        <div class="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-purple-900/10 to-transparent pointer-events-none"></div>
+    <!--
+        Repertoire Section: Interactive Weekly Calendar
+    -->
+    <section id="repertoire-section" class="py-24 bg-cinema-black relative w-full overflow-hidden">
+        <div class="absolute top-0 right-0 w-1/3 h-full bg-[radial-gradient(circle_at_top_right,rgba(147,51,234,0.05),transparent)] pointer-events-none"></div>
 
         <div class="container mx-auto px-6 relative z-10">
-
-            <div class="flex flex-col md:flex-row justify-between items-end mb-12 border-b border-gray-800 pb-4">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-12 border-b border-gray-800/50 pb-8">
                 <div>
-                    <h2 class="text-3xl font-bold border-l-4 border-cinema-accent pl-4 font-serif text-white">REPERTOIRE</h2>
-                    <p class="text-gray-400 mt-2 pl-5">Choose a movie and reserve the best seats</p>
+                    <h2 class="text-3xl font-bold border-l-4 border-cinema-accent pl-4 font-serif text-white tracking-widest uppercase text-sm">Now Playing</h2>
+                    <p class="text-gray-500 mt-2 pl-5 text-sm uppercase tracking-tighter">Select a date and reserve your preferred seats</p>
                 </div>
 
-                <div id="dates-container" class="flex gap-6 mt-6 md:mt-0 overflow-x-auto pb-2 md:pb-0">
+                <!-- Dynamic Date Navigation Container -->
+                <div id="dates-container" class="flex gap-4 mt-8 md:mt-0 overflow-x-auto pb-2 scrollbar-hide">
+                    <!-- Buttons injected via initCalendar() -->
                 </div>
             </div>
 
-            <div id="loader" class="text-center py-20 hidden">
+            <!-- UI Loading & Empty States -->
+            <div id="repertoire-loader" class="text-center py-24 hidden">
                 <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cinema-accent"></div>
-                <p class="text-gray-400 mt-4">Loading repertoire...</p>
+                <p class="text-gray-500 mt-6 font-medium tracking-widest uppercase text-xs">Fetching showtimes...</p>
             </div>
 
-            <div id="no-movies-msg" class="text-center py-20 bg-cinema-dark rounded-xl border border-gray-800 hidden">
-                <i class="fas fa-film text-6xl text-gray-700 mb-4"></i>
-                <h3 class="text-xl text-gray-400">No screenings on the selected day.</h3>
-                <p class="text-gray-600">Choose a different date from the menu above.</p>
+            <div id="no-movies-msg" class="text-center py-24 bg-cinema-dark/50 rounded-3xl border border-white/5 hidden animate-fade-in">
+                <i class="fas fa-film text-6xl text-gray-800 mb-6"></i>
+                <h3 class="text-xl text-gray-400 font-serif">No screenings found for this date.</h3>
+                <p class="text-gray-600 mt-2">Please select another day from the menu above.</p>
             </div>
 
+            <!-- Main Movies Grid -->
             <div id="movies-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 min-h-[400px]">
+                <!-- Movie cards injected via createMovieCard() -->
             </div>
-
         </div>
     </section>
 
-    <script>
+    <!--
+        Frontend Logic: Repertoire Management
+    -->
+    <script th:inline="javascript">
         document.addEventListener('DOMContentLoaded', () => {
-            initDates();
+            initCalendar();
             loadRepertoire(new Date());
         });
 
-        function initDates() {
+        /**
+         * Generates a navigation bar for the next 7 days.
+         */
+        function initCalendar() {
             const container = document.getElementById('dates-container');
             const today = new Date();
-
             container.innerHTML = '';
 
             for (let i = 0; i < 7; i++) {
                 const date = new Date(today);
                 date.setDate(today.getDate() + i);
-
                 const dateStr = date.toISOString().split('T')[0];
-                const dayName = i === 0 ? 'TODAY' : (i === 1 ? 'TOMORROW' : formatDateShort(date));
 
                 const btn = document.createElement('button');
+                const isFirst = i === 0;
 
-                const inactiveClass = `date-btn bg-transparent border-0 text-gray-500 hover:text-white transition pb-1 font-semibold uppercase tracking-wider whitespace-nowrap cursor-pointer focus:outline-none`;
-                const activeClass = `date-btn bg-transparent border-0 border-b-2 border-cinema-accent text-white pb-1 font-bold cursor-default transition uppercase tracking-wider whitespace-nowrap focus:outline-none`;
-
-                btn.className = inactiveClass;
+                btn.className = getBtnClass(isFirst);
                 btn.dataset.date = dateStr;
-                btn.textContent = dayName;
+                btn.innerHTML = `
+                    <span class="block text-[10px] opacity-60 font-bold">${i === 0 ? 'TODAY' : formatDateDay(date)}</span>
+                    <span class="block text-lg">${formatDateShort(date)}</span>
+                `;
 
                 btn.onclick = () => {
-                    document.querySelectorAll('.date-btn').forEach(b => b.className = inactiveClass);
-                    btn.className = activeClass;
-
+                    document.querySelectorAll('.date-btn').forEach(b => b.className = getBtnClass(false));
+                    btn.className = getBtnClass(true);
                     loadRepertoire(date);
                 };
-
-                if (i === 0) {
-                    btn.className = activeClass;
-                }
 
                 container.appendChild(btn);
             }
         }
 
-        function formatDateShort(date) {
-            const d = date.getDate().toString().padStart(2, '0');
-            const m = (date.getMonth() + 1).toString().padStart(2, '0');
-            return `${d}.${m}`;
+        /**
+         * Returns Tailwind CSS classes based on active state.
+         */
+        function getBtnClass(active) {
+            const base = "date-btn min-w-[80px] px-4 py-3 rounded-2xl transition duration-300 uppercase tracking-tighter focus:outline-none border ";
+            return active
+                ? base + "bg-cinema-accent text-white border-cinema-accent shadow-lg shadow-purple-900/30 font-bold scale-105"
+                : base + "bg-cinema-dark text-gray-500 border-white/5 hover:text-white hover:border-gray-600";
         }
 
+        function formatDateDay(date) {
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            return days[date.getDay()];
+        }
+
+        function formatDateShort(date) {
+            return `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+        }
+
+        /**
+         * Fetches repertoire data from the REST API.
+         */
         async function loadRepertoire(dateObj) {
             const dateStr = dateObj.toISOString().split('T')[0];
-            const moviesContainer = document.getElementById('movies-container');
-            const loader = document.getElementById('loader');
-            const noMoviesMsg = document.getElementById('no-movies-msg');
+            const container = document.getElementById('movies-container');
+            const loader = document.getElementById('repertoire-loader');
+            const noMovies = document.getElementById('no-movies-msg');
 
-            moviesContainer.innerHTML = '';
-            noMoviesMsg.classList.add('hidden');
+            container.innerHTML = '';
+            noMovies.classList.add('hidden');
             loader.classList.remove('hidden');
 
             try {
                 const response = await fetch(`/api/v1/repertoires?date=${dateStr}`);
-                if (!response.ok) throw new Error('Network response was not ok');
-
                 const movies = await response.json();
-
                 loader.classList.add('hidden');
 
                 if (movies.length === 0) {
-                    noMoviesMsg.classList.remove('hidden');
+                    noMovies.classList.remove('hidden');
                     return;
                 }
 
                 movies.forEach(movie => {
-                    const card = createMovieCard(movie);
-                    moviesContainer.innerHTML += card;
+                    container.innerHTML += createMovieCard(movie);
                 });
-
             } catch (error) {
-                console.error('Error fetching repertoire:', error);
-                loader.classList.add('hidden');
-                moviesContainer.innerHTML = `<p class="text-red-500 text-center col-span-4">An error occurred while fetching the repertoire.</p>`;
+                console.error('Fetch error:', error);
+                loader.innerHTML = `<p class="text-red-500 py-10">Error loading repertoire.</p>`;
             }
         }
 
+        /**
+         * Renders an individual movie card with its seance times.
+         */
         function createMovieCard(movie) {
-            const imageUrl = movie.imageUrl ? movie.imageUrl : 'https://placehold.co/400x600/1a1a1a/FFF?text=No+Cover';
+            const imageUrl = movie.imageUrl || 'https://placehold.co/400x600/1a1a1a/FFF?text=No+Cover';
 
-            let seancesHtml = '';
-            if (movie.seances && movie.seances.length > 0) {
-                movie.seances.forEach(s => {
-                    const time = s.startTime.split('T')[1].substring(0, 5);
-                    seancesHtml += `
-                        <a href="/booking/seance/${s.id}"
-                           class="text-xs bg-gray-800 hover:bg-cinema-accent cursor-pointer transition px-3 py-1.5 rounded text-gray-300 hover:text-white border border-gray-700 font-mono no-underline">
-                            ${time}
-                        </a>`;
-                });
-            } else {
-                seancesHtml = `<span class="text-xs text-red-500 italic">Sold Out</span>`;
-            }
+            let seancesHtml = movie.seances.map(s => {
+                const time = s.startTime.split('T')[1].substring(0, 5);
+                return `
+                    <a href="/booking/seance/${s.id}"
+                       class="text-[11px] bg-white/5 hover:bg-cinema-accent text-gray-300 hover:text-white transition px-3 py-2 rounded-lg border border-white/5 font-mono no-underline">
+                        ${time}
+                    </a>`;
+            }).join('');
 
             return `
-                <div class="group relative rounded-xl overflow-hidden bg-cinema-dark shadow-xl hover:shadow-2xl hover:shadow-purple-900/20 transition duration-300 border border-white/5 animate-fade-in-up">
-                    <div class="relative h-[400px] overflow-hidden cursor-pointer">
-                        <img src="${imageUrl}" alt="${movie.title}"
-                             class="w-full h-full object-cover transition duration-700 group-hover:scale-110 group-hover:brightness-110">
-
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-end p-6">
-                             <a href="#" class="bg-cinema-accent text-white w-full py-3 rounded font-bold hover:bg-white hover:text-cinema-black transition mb-2 text-center uppercase tracking-wide no-underline">
-                                Details
-                             </a>
-                             <p class="text-center text-xs text-gray-300 mt-2">
-                                <i class="fas fa-clock text-cinema-accent"></i> ${movie.durationMin} min
-                             </p>
-                        </div>
-
-                        <div class="absolute top-4 right-4 bg-cinema-black/80 backdrop-blur text-white font-bold text-xs px-3 py-1 rounded shadow-lg border border-white/10 uppercase tracking-wider">
-                            ${movie.genre}
+                <div class="group bg-cinema-dark rounded-2xl overflow-hidden border border-white/5 shadow-2xl transition hover:border-cinema-accent/30 animate-fade-in-up">
+                    <div class="relative h-[380px] overflow-hidden">
+                        <img src="${imageUrl}" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-cinema-black via-transparent to-transparent opacity-60"></div>
+                        <div class="absolute top-4 left-4">
+                            <span class="bg-cinema-black/80 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1 rounded-full border border-white/10 uppercase tracking-widest">
+                                ${movie.genre}
+                            </span>
                         </div>
                     </div>
-
-                    <div class="p-5">
-                        <h3 class="text-lg font-bold mb-1 group-hover:text-cinema-accent transition truncate font-serif text-white" title="${movie.title}">
+                    <div class="p-6">
+                        <h3 class="text-lg font-bold text-white font-serif mb-2 group-hover:text-cinema-accent transition truncate" title="${movie.title}">
                             ${movie.title}
                         </h3>
-
-                        <p class="text-xs text-gray-500 mb-4 line-clamp-2">
-                            ${movie.description}
-                        </p>
-
+                        <div class="flex items-center gap-4 text-[10px] text-gray-500 mb-6 uppercase font-bold tracking-widest">
+                            <span><i class="fas fa-clock text-cinema-accent mr-1"></i> ${movie.durationMin} min</span>
+                        </div>
                         <div class="flex flex-wrap gap-2">
-                            ${seancesHtml}
+                            ${seancesHtml || '<span class="text-gray-600 italic text-xs">No sessions</span>'}
                         </div>
                     </div>
                 </div>
@@ -255,6 +240,5 @@
     </script>
 
 </div>
-
 </body>
 </html>

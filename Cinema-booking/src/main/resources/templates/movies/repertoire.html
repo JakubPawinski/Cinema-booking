@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+<head>
+    <title>Showtimes & Repertoire - Cinema Booking</title>
+</head>
+<body>
+
+<div layout:fragment="content">
+
+    <!--
+        Repertoire Header Section
+    -->
+    <div class="pt-32 pb-16 bg-cinema-black relative overflow-hidden">
+        <!-- Subtle background glow -->
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(147,51,234,0.1),transparent_70%)] pointer-events-none"></div>
+
+        <div class="container mx-auto px-6 relative z-10 text-center">
+            <h1 class="text-4xl md:text-6xl font-extrabold text-white font-serif tracking-tight mb-4 uppercase">
+                Daily <span class="text-cinema-accent">Repertoire</span>
+            </h1>
+            <div class="w-24 h-1.5 bg-cinema-accent mx-auto rounded-full mb-6"></div>
+            <p class="text-gray-400 max-w-xl mx-auto text-sm md:text-base leading-relaxed">
+                Check out today's screenings and book your seat. Experience cinema like never before with our state-of-the-art sound and projection systems.
+            </p>
+        </div>
+    </div>
+
+    <!--
+        Repertoire Content Module
+    -->
+    <div class="pb-24 bg-cinema-black min-h-[50vh]">
+        <div class="container mx-auto px-6">
+            <div class="bg-cinema-dark/50 backdrop-blur-sm border border-white/5 rounded-3xl p-8 shadow-2xl">
+                <!-- Fragment placeholder for the actual seance filtering and list -->
+                <div th:replace="~{fragments/repertoire-block :: repertoire-module}"></div>
+            </div>
+
+            <!-- Quick Help / Legend -->
+            <div class="mt-12 flex flex-wrap justify-center gap-8 text-xs text-gray-500 uppercase tracking-widest font-bold">
+                <div class="flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full bg-cinema-accent shadow-[0_0_8px_rgba(147,51,234,0.8)]"></span>
+                    Available
+                </div>
+                <div class="flex items-center gap-2 opacity-50">
+                    <span class="w-3 h-3 rounded-full bg-gray-600"></span>
+                    Show Started / Full
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

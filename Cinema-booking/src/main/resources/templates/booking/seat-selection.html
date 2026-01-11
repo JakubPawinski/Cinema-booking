@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layout}">
+      layout:decorate="~{fragments/layout}">
 <head>
-    <title>Wybór Miejsc</title>
+    <title>Select Seats - Cinema Palace</title>
     <style>
         .screen {
             background: linear-gradient(to bottom, #fff, transparent);
@@ -11,41 +11,43 @@
             transform: perspective(600px) rotateX(-20deg) scale(0.9);
             box-shadow: 0 50px 40px rgba(255,255,255,0.1);
         }
+
         .seat {
-            width: 35px;
-            height: 35px;
-            border-top-left-radius: 10px;
-            border-top-right-radius: 10px;
+            width: 40px; height: 40px;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.75rem;
         }
-        .seat.available { background-color: #374151; }
-        .seat.available:hover { background-color: #9333ea; transform: scale(1.1); }
-        .seat.occupied { background-color: #991b1b; cursor: not-allowed; }
-        /* Styl dla Twoich wybranych miejsc */
+
+        /* Seat status variants */
+        .seat.available { background-color: #374151; color: #9ca3af; }
+        .seat.available:hover { background-color: #9333ea; color: white; transform: translateY(-2px); }
+        .seat.occupied { background-color: #7f1d1d; color: #450a0a; cursor: not-allowed; border: 1px solid #991b1b; }
+
         .seat.selected {
             background-color: #fbbf24;
             color: black;
-            box-shadow: 0 0 15px #fbbf24;
-            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.4);
+            transform: scale(1.1) translateY(-4px);
             z-index: 10;
         }
-        /* Styl ładowania (kręciołek na miejscu) */
-        .seat.loading {
-            pointer-events: none;
-            opacity: 0.7;
-        }
+
+        .seat.loading { pointer-events: none; opacity: 0.8; }
         .seat.loading::after {
             content: "";
             position: absolute;
-            top: 50%; left: 50%;
             width: 16px; height: 16px;
-            margin-top: -8px; margin-left: -8px;
-            border: 2px solid white;
+            border: 2px solid rgba(255,255,255,0.8);
             border-top-color: transparent;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            animation: spin 0.8s linear infinite;
         }
         @keyframes spin { from {transform: rotate(0deg);} to {transform: rotate(360deg);} }
     </style>
@@ -53,37 +55,48 @@
 <body>
 
 <div layout:fragment="content">
-    <div class="container mx-auto px-6 py-12">
+    <div class="container mx-auto px-4 py-12 max-w-5xl">
 
-        <div class="text-center mb-8">
-            <h2 class="text-2xl font-bold text-white mb-2" th:text="${seance.roomName}">Sala Kinowa</h2>
-            <p class="text-gray-400">Kliknij miejsce, aby je zablokować.</p>
+        <div class="text-center mb-10 animate-fade-in-down">
+            <h2 class="text-3xl font-serif font-bold text-white mb-2" th:text="${seance.roomName}">Cinema Room</h2>
+            <p class="text-gray-400">Select seats for <span class="text-cinema-accent font-semibold" th:text="${seance.movieTitle}">Movie Title</span></p>
         </div>
 
-        <div class="flex justify-center gap-6 mb-12 text-sm text-gray-300">
-            <div class="flex items-center gap-2"><div class="w-4 h-4 bg-gray-700 rounded"></div> Wolne</div>
-            <div class="flex items-center gap-2"><div class="w-4 h-4 bg-red-800 rounded"></div> Zajęte</div>
-            <div class="flex items-center gap-2"><div class="w-4 h-4 bg-yellow-500 rounded"></div> Twój koszyk</div>
+        <!-- Legend -->
+        <div class="flex justify-center gap-8 mb-12 text-sm text-gray-400">
+            <div class="flex items-center gap-3"><div class="w-6 h-6 bg-gray-700 rounded-md"></div> Available</div>
+            <div class="flex items-center gap-3"><div class="w-6 h-6 bg-red-900 border border-red-800 rounded-md"></div> Occupied</div>
+            <div class="flex items-center gap-3"><div class="w-6 h-6 bg-yellow-400 rounded-md shadow-[0_0_10px_rgba(251,191,36,0.5)]"></div> Your Selection</div>
         </div>
 
-        <div class="flex justify-center mb-8">
-            <div class="screen h-12 w-2/3 bg-white"></div>
+        <!-- Screen Visualizer -->
+        <div class="flex flex-col items-center mb-16">
+            <div class="screen h-16 w-3/4 bg-white mb-4"></div>
+            <span class="text-xs text-gray-600 uppercase tracking-[0.2em]">Screen</span>
         </div>
 
-        <div id="seat-grid" class="flex flex-col items-center gap-2 mb-12 min-h-[300px] justify-center">
-            <div class="text-cinema-accent animate-pulse">Ładowanie sali...</div>
+        <!-- Dynamic Seat Grid -->
+        <div id="seat-grid" class="flex flex-col items-center gap-3 mb-24 min-h-[300px] justify-center select-none">
+            <div class="flex flex-col items-center gap-2">
+                <i class="fas fa-circle-notch fa-spin text-3xl text-cinema-accent"></i>
+                <span class="text-gray-500 text-sm mt-2">Loading floor plan...</span>
+            </div>
         </div>
 
-        <div class="fixed bottom-0 left-0 w-full bg-cinema-dark border-t border-gray-800 p-4 shadow-2xl">
-            <div class="container mx-auto flex justify-between items-center">
-                <div class="text-white">
-                    Wybrano miejsc: <span id="count" class="text-cinema-gold font-bold text-xl">0</span>
-                    <span id="status-msg" class="text-xs text-gray-500 ml-2"></span>
+        <!-- Bottom Action Bar (Sticky) -->
+        <div class="fixed bottom-0 left-0 w-full bg-black/90 backdrop-blur-md border-t border-white/10 p-4 z-50 transition-transform duration-300 transform translate-y-full" id="bottom-bar">
+            <div class="container mx-auto max-w-5xl flex justify-between items-center">
+                <div class="flex flex-col">
+                    <span class="text-gray-400 text-xs uppercase tracking-wider">Your Reservation</span>
+                    <div class="flex items-baseline gap-2">
+                        <span class="text-white text-lg">Seats: <span id="count" class="text-cinema-gold font-bold">0</span></span>
+                        <span class="text-gray-500 text-sm">| Total: <span id="total-price" class="text-white font-mono">0.00</span> PLN</span>
+                    </div>
                 </div>
 
-                <button onclick="proceedToPayment()" id="next-btn" disabled
-                        class="bg-cinema-accent hover:bg-cinema-accentHover disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-3 rounded font-bold transition flex items-center gap-2">
-                    Dalej <i class="fas fa-arrow-right"></i>
+                <button onclick="proceedToPayment()" id="next-btn"
+                        class="bg-gradient-to-r from-cinema-accent to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white px-8 py-3 rounded-xl font-bold transition transform hover:scale-105 shadow-lg flex items-center gap-3">
+                    Summary <i class="fas fa-chevron-right text-xs"></i>
                 </button>
             </div>
         </div>
@@ -91,60 +104,68 @@
     </div>
 
     <script th:inline="javascript">
+        /*<![CDATA[*/
         const seanceId = /*[[${seance.id}]]*/ 0;
+        /*]]>*/
 
-        // Stan aplikacji
+        // Global State Management
         let currentReservationId = null;
-        let myTickets = {}; // Mapa: seatId -> ticketId (żeby wiedzieć co usuwać)
-        let selectedCount = 0;
+        let myTicketsMap = new Map(); // Map: seatId -> ticketId (required for removal)
 
         document.addEventListener('DOMContentLoaded', () => {
             fetchSeats();
         });
 
-        // 1. Pobranie i rysowanie sali
+        /**
+         * Fetches seat data for the specific seance.
+         */
         async function fetchSeats() {
             try {
                 const response = await fetch(`/api/v1/seances/${seanceId}/seats`);
+                if(!response.ok) throw new Error("Network error");
                 const seats = await response.json();
                 renderGrid(seats);
             } catch (e) {
                 console.error(e);
-                document.getElementById('seat-grid').innerHTML = '<p class="text-red-500">Błąd ładowania sali.</p>';
+                document.getElementById('seat-grid').innerHTML =
+                    '<div class="text-red-400 flex flex-col items-center"><i class="fas fa-exclamation-triangle text-2xl mb-2"></i><p>Failed to load room layout.</p></div>';
             }
         }
 
+        /**
+         * Renders the interactive grid based on seat data.
+         * Groups seats into rows and sorts them numerically.
+         */
         function renderGrid(seats) {
             const grid = document.getElementById('seat-grid');
             grid.innerHTML = '';
 
-            // Grupowanie wierszy
             const rows = {};
             seats.forEach(seat => {
                 if (!rows[seat.rowNumber]) rows[seat.rowNumber] = [];
                 rows[seat.rowNumber].push(seat);
             });
 
-            // Renderowanie HTML
-            Object.keys(rows).forEach(rowNum => {
+            Object.keys(rows).sort((a,b) => a - b).forEach(rowNum => {
                 const rowDiv = document.createElement('div');
-                rowDiv.className = 'flex gap-2 items-center';
+                rowDiv.className = 'flex gap-3 items-center';
 
                 const rowLabel = document.createElement('span');
-                rowLabel.className = 'text-gray-500 w-6 text-right mr-2 text-xs font-mono';
+                rowLabel.className = 'text-gray-600 w-6 text-right font-mono text-xs font-bold';
                 rowLabel.innerText = rowNum;
                 rowDiv.appendChild(rowLabel);
 
-                rows[rowNum].forEach(seat => {
+                rows[rowNum].sort((a,b) => a.seatNumber - b.seatNumber).forEach(seat => {
                     const seatDiv = document.createElement('div');
-                    seatDiv.dataset.seatId = seat.id; // Ważne do wyszukiwania elementu
+                    seatDiv.id = `seat-${seat.id}`;
 
-                    let classes = 'seat flex items-center justify-center text-xs ';
+                    let classes = 'seat rounded-md shadow-sm ';
                     if (seat.occupied) {
                         classes += 'occupied';
+                        seatDiv.title = "Seat occupied";
                     } else {
                         classes += 'available';
-                        seatDiv.onclick = () => handleSeatClick(seatDiv, seat.id);
+                        seatDiv.onclick = () => toggleSeat(seatDiv, seat.id);
                     }
 
                     seatDiv.className = classes;
@@ -156,165 +177,150 @@
             });
         }
 
-        // 2. Obsługa kliknięcia (Logika Biznesowa)
-        async function handleSeatClick(element, seatId) {
-            if (element.classList.contains('loading')) return; // Zapobiegaj spamowaniu
+        /**
+         * Handles the seat click event.
+         */
+        async function toggleSeat(element, seatId) {
+            if (element.classList.contains('loading')) return;
 
-            const isSelected = element.classList.contains('selected');
-
-            // UI Optymistyczne (z spinnerem)
+            const isSelected = myTicketsMap.has(seatId);
             element.classList.add('loading');
 
             try {
-                if (!isSelected) {
-                    // --- AKCJA: ZAJMIJ MIEJSCE (LOCK) ---
-                    await lockSeat(seatId);
-                    element.classList.add('selected');
-                    element.classList.remove('available');
-                } else {
-                    // --- AKCJA: ZWOLNIJ MIEJSCE (UNLOCK) ---
-                    await unlockSeat(seatId);
+                if (isSelected) {
+                    await removeTicket(seatId);
                     element.classList.remove('selected');
                     element.classList.add('available');
+                } else {
+                    await addTicket(seatId);
+                    element.classList.add('selected');
+                    element.classList.remove('available');
                 }
-            } catch (error) {
-                alert(error.message);
-                // W razie błędu odśwież całą salę, bo stan może być niespójny
-                fetchSeats();
-                // Reset lokalnego stanu jeśli to była pierwsza nieudana rezerwacja
-                if(!currentReservationId) selectedCount = 0;
+            } catch (err) {
+                showToast(err.message, 'error');
+
+                if (err.status === 409) {
+                    element.classList.remove('selected', 'available', 'loading');
+                    element.classList.add('occupied');
+                    element.title = "Seat occupied";
+                    element.onclick = null;
+                } else {
+                    if (isSelected) element.classList.add('selected');
+                    else element.classList.remove('selected');
+                    element.classList.remove('loading');
+                }
             } finally {
-                element.classList.remove('loading');
+                if (!element.classList.contains('occupied')) {
+                    element.classList.remove('loading');
+                }
                 updateUI();
             }
         }
 
-        async function lockSeat(seatId) {
-            // SCENARIUSZ A: Pierwsze miejsce (Tworzymy nową rezerwację)
+        /**
+         * Communicates with the API to add a seat.
+         * Creates a new reservation session if one doesn't exist.
+         */
+        async function addTicket(seatId) {
+            let data;
+
             if (!currentReservationId) {
+                // Initial creation
                 const payload = {
                     seanceId: seanceId,
                     tickets: [{ seatId: seatId, ticketType: 'REGULAR' }]
                 };
 
-                const response = await fetch('/api/v1/reservations', {
+                const res = await fetch('/api/v1/reservations', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
 
-                if (!response.ok) throw new Error("Nie udało się zająć miejsca (może ktoś był szybszy?)");
-
-                const reservation = await response.json();
-                currentReservationId = reservation.id;
-
-                // Zapisz ID biletu (potrzebne do usuwania)
-                // Zakładamy, że zwrócony bilet odpowiada temu miejscu
-                // (W prostej implementacji z 1 biletem to łatwe)
-                // Ponieważ API createReservation zwraca tylko summary, musimy założyć,
-                // że skoro się udało, to miejsce jest nasze.
-                // Lepiej, żeby API zwracało listę biletów z ID.
-                // Tutaj zrobimy mały hack: pobierzemy szczegóły rezerwacji, żeby mieć ID biletu.
-                await refreshMyTicketsDetails();
-
+                if (!res.ok) throw await handleError(res);
+                data = await res.json();
+                currentReservationId = data.id;
             } else {
-                // SCENARIUSZ B: Kolejne miejsce (Dodajemy do istniejącej)
-                // Używamy nowego endpointu POST /{id}/tickets
-                const response = await fetch(`/api/v1/reservations/${currentReservationId}/tickets?seatId=${seatId}`, {
+                // Addition to existing reservation
+                const res = await fetch(`/api/v1/reservations/${currentReservationId}/tickets?seatId=${seatId}`, {
                     method: 'POST'
                 });
 
-                if (!response.ok) throw new Error("Nie udało się domówić miejsca.");
-
-                await refreshMyTicketsDetails();
+                if (!res.ok) throw await handleError(res);
+                data = await res.json();
             }
+
+            updateTicketsMap(data.tickets);
+            updatePrice(data.totalPrice);
         }
 
-        async function unlockSeat(seatId) {
-            const ticketId = myTickets[seatId];
+        /**
+         * Communicates with the API to remove a specifically chosen seat.
+         */
+        async function removeTicket(seatId) {
+            const ticketId = myTicketsMap.get(seatId);
             if (!ticketId || !currentReservationId) return;
 
-            const response = await fetch(`/api/v1/reservations/${currentReservationId}/tickets/${ticketId}`, {
+            const res = await fetch(`/api/v1/reservations/${currentReservationId}/tickets/${ticketId}`, {
                 method: 'DELETE'
             });
 
-            if (!response.ok) throw new Error("Błąd zwalniania miejsca.");
-
-            // Jeśli usunęliśmy ostatni bilet, rezerwacja może zniknąć lub być pusta
-            delete myTickets[seatId];
-
-            const summary = await response.json();
-            if (summary.ticketCount === 0) {
-                currentReservationId = null; // Reset
-                myTickets = {};
-            }
-        }
-
-        // Pomocnicza funkcja do aktualizowania mapy seatId -> ticketId
-        // Jest potrzebna, bo API zwraca Summary, a my musimy wiedzieć jaki ID ma bilet, żeby go usunąć.
-        async function refreshMyTicketsDetails() {
-            // Musimy pobrać detale rezerwacji, żeby zmapować Seaty na TicketID
-            // Używamy endpointu profilowego (jeśli użytkownik jest zalogowany)
-            // LUB API musi zwracać listę biletów w odpowiedzi na POST.
-            // Zakładam, że jesteś zalogowany.
-
-            // Jeśli nie masz endpointu do pobrania biletów JSONem, to jest trudność.
-            // Obejście: Zmień w backendzie ReservationRestController metodę addTicket
-            // tak, żeby zwracała pełny obiekt z listą biletów, a nie SummaryDto.
-
-            // Tymczasowe rozwiązanie:
-            // Zakładamy, że backend w createReservation/addTicket zwraca obiekt,
-            // w którym (nawet jeśli to Summary) dodamy pole `tickets: [{id, seatId}]`.
-            // Jeśli nie - musisz to dodać w DTO.
-
-            // W tej wersji kodu założę, że odświeżamy rezerwację pobierając ją z profilu
-            // (wymaga, by user był zalogowany)
-            if(!currentReservationId) return;
-
-            // To jest mały hack - w idealnym świecie POST zwraca pełne dane.
-            // Tutaj po prostu zliczymy lokalnie dla UI, a ID biletu...
-            // Bez ID biletu nie zrobimy DELETE.
-
-            // ZALECENIE: Zmień ReservationSummaryDto, dodając listę:
-            // private List<TicketSimpleDto> tickets;
-
-            // Spróbujmy pobrać przez endpoint profilowy (zwraca HTML, więc to nie zadziała w JS).
-            // Musimy użyć endpointu REST. Dodaj GET /api/v1/reservations/{id} w kontrolerze.
-            // Zakładam, że go dodasz. Jeśli nie - to kod poniżej nie zadziała w 100% dla usuwania.
-
-            // Symulacja mapowania (gdyby API zwracało bilety):
-            /*
-            const res = await fetch(`/api/v1/reservations/${currentReservationId}`);
+            if (!res.ok) throw await handleError(res);
             const data = await res.json();
-            data.tickets.forEach(t => myTickets[t.seat.id] = t.id);
-            */
 
-            // WERSJA ROBOCZA (Dla twojego obecnego API):
-            // Ponieważ removeTicket wymaga TicketID, a my go nie mamy po createReservation (SummaryDto go nie ma),
-            // to "odklikiwanie" będzie trudne bez zmiany backendu.
-            // Na potrzeby tego kodu zakładam, że ZMODYFIKUJESZ ReservationSummaryDto
-            // dodając tam `Map<Long, Long> seatToTicketId;`
+            // Clear local mapping
+            myTicketsMap.delete(seatId);
+            updatePrice(data.totalPrice);
+
+            // Reset session if it was the last ticket
+            if (data.ticketCount === 0) {
+                currentReservationId = null;
+            }
         }
 
-        // Ponieważ nie mogę teraz zmienić Twojego DTO, zrobię sprytne obejście w JS:
-        // Przyjmijmy, że na tym etapie 'odklikiwanie' działa logicznie w UI,
-        // ale żeby działało technicznie, musisz w ReservationRestController.java
-        // dodać metodę GET /api/v1/reservations/{id}, która zwraca JSON z biletami.
-        // Tutaj zrobię placeholder:
+        /**
+         * Orchestrates internal state by mapping seat IDs to database ticket IDs.
+         */
+        function updateTicketsMap(ticketsList) {
+            if(!ticketsList) return;
+            ticketsList.forEach(t => {
+                myTicketsMap.set(t.seatId, t.ticketId);
+            });
+        }
 
-        async function updateUI() {
-            selectedCount = Object.keys(myTickets).length; // lub zliczone z DOM
-            // Aktualizujemy licznik na podstawie klasy .selected w DOM (najpewniejsze)
-            const count = document.querySelectorAll('.seat.selected').length;
-
+        /**
+         * Updates visual components like the floating bar and seat count.
+         */
+        function updateUI() {
+            const count = myTicketsMap.size;
             document.getElementById('count').innerText = count;
-            document.getElementById('next-btn').disabled = count === 0;
 
-            if (currentReservationId) {
-                document.getElementById('status-msg').innerText = "(Zapisano w bazie)";
+            const bottomBar = document.getElementById('bottom-bar');
+            if (count > 0) {
+                bottomBar.classList.remove('translate-y-full');
             } else {
-                document.getElementById('status-msg').innerText = "";
+                bottomBar.classList.add('translate-y-full');
             }
+        }
+
+        function updatePrice(amount) {
+            const safeAmount = amount || 0;
+            document.getElementById('total-price').innerText = safeAmount.toFixed(2);
+        }
+
+        /**
+         * Standardizes error parsing from API responses.
+         */
+        async function handleError(response) {
+            let error;
+            try {
+                const errData = await response.json();
+                error = new Error(errData.message || "An error occurred");
+            } catch {
+                error = new Error("Communication error (" + response.status + ")");
+            }
+            error.status = response.status;
+            return error;
         }
 
         function proceedToPayment() {
@@ -323,11 +329,20 @@
             }
         }
 
-        // HACK dla myTickets:
-        // Aby to działało bez zmian w wielu plikach Javy, przy lockSeat
-        // musisz przeładować stronę lub zaufać, że backend zwróci nam ID.
-        // W realnym wdrożeniu: Dodaj `List<TicketDto> tickets` do `ReservationSummaryDto`.
-
+        /**
+         * Displays floating notifications for user feedback.
+         */
+        function showToast(msg, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `fixed top-24 right-5 px-6 py-4 rounded-lg shadow-2xl text-white font-bold transform transition-all duration-500 translate-x-full z-[100] ${type === 'error' ? 'bg-red-600' : 'bg-green-600'}`;
+            toast.innerText = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.classList.remove('translate-x-full'), 10);
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
     </script>
 </div>
 </body>

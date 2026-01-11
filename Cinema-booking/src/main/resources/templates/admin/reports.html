@@ -1,88 +1,109 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layout}">
+      layout:decorate="~{fragments/layout}">
 <head>
-    <title>Raporty Sprzedaży</title>
+    <title>Sales Reports</title>
 </head>
 <body>
 
 <div layout:fragment="content">
     <div class="container mx-auto px-6 py-12">
 
+        <!--
+            Header Section
+            Navigation and Page Title
+        -->
         <div class="flex justify-between items-center mb-10">
-            <h1 class="text-3xl font-bold text-white border-l-4 border-cinema-accent pl-4">
-                Raporty Sprzedaży
+            <h1 class="text-3xl font-bold text-white border-l-4 border-cinema-accent pl-4 uppercase tracking-wider">
+                Sales Reports
             </h1>
-            <a href="/admin" class="text-gray-400 hover:text-white transition">
-                <i class="fas fa-arrow-left mr-2"></i> Wróć do Panelu
+            <a th:href="@{/admin}" class="text-gray-400 hover:text-white transition no-underline flex items-center">
+                <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
             </a>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
 
+            <!--
+                Daily Sales Report
+                Displays aggregated ticket sales and revenue by date
+            -->
             <div class="bg-cinema-dark p-6 rounded-xl border border-gray-800 shadow-xl">
-                <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                    <i class="fas fa-calendar-alt text-cinema-accent"></i> Sprzedaż wg Dni
-                </h2>
-                <a href="/api/v1/reports/daily/csv" class="text-xs bg-green-700 hover:bg-green-600 text-white px-3 py-2 rounded font-bold transition no-underline flex items-center gap-2">
-                    <i class="fas fa-file-csv"></i> Pobierz CSV
-                </a>
+                <div class="flex justify-between items-start mb-6">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fas fa-calendar-alt text-cinema-accent"></i> Sales by Date
+                    </h2>
+                    <a th:href="@{/api/v1/reports/daily/csv}"
+                       class="text-xs bg-green-700 hover:bg-green-600 text-white px-3 py-2 rounded font-bold transition no-underline flex items-center gap-2">
+                        <i class="fas fa-file-csv"></i> Export CSV
+                    </a>
+                </div>
 
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
                         <tr class="text-gray-400 border-b border-gray-700 text-sm uppercase">
-                            <th class="py-3">Data</th>
-                            <th class="py-3 text-center">Bilety</th>
-                            <th class="py-3 text-right">Przychód</th>
+                            <th class="py-3">Date</th>
+                            <th class="py-3 text-center">Tickets</th>
+                            <th class="py-3 text-right">Revenue</th>
                         </tr>
                         </thead>
                         <tbody class="text-gray-300 text-sm divide-y divide-gray-800">
+                        <!-- Iterating through daily sales records -->
                         <tr th:each="row : ${salesByDate}" class="hover:bg-white/5 transition">
                             <td class="py-3 font-mono" th:text="${row.date}">2026-01-09</td>
-                            <td class="py-3 text-center font-bold text-white" th:text="${row.ticketsSold}">15</td>
+                            <td class="py-3 text-center font-bold text-white" th:text="${row.ticketsSold}">0</td>
                             <td class="py-3 text-right text-green-400 font-bold"
-                                th:text="${#numbers.formatDecimal(row.totalRevenue, 1, 'DEFAULT', 2, 'DEFAULT')} + ' zł'">
-                                1200.00 zł
+                                th:text="'$' + ${#numbers.formatDecimal(row.totalRevenue, 1, 2)}">
+                                $0.00
                             </td>
                         </tr>
-                        <tr th:if="${salesByDate.empty}">
-                            <td colspan="3" class="py-4 text-center text-gray-500 italic">Brak danych sprzedażowych.</td>
+                        <!-- Fallback for empty daily sales state -->
+                        <tr th:if="${salesByDate == null or salesByDate.empty}">
+                            <td colspan="3" class="py-4 text-center text-gray-500 italic">No sales data available for the selected period.</td>
                         </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
 
+            <!--
+                Top Movies Report
+            -->
             <div class="bg-cinema-dark p-6 rounded-xl border border-gray-800 shadow-xl">
-                <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                    <i class="fas fa-film text-cinema-accent"></i> Top Filmy
-                </h2>
-                <a href="/api/v1/reports/movies/csv" class="text-xs bg-blue-700 hover:bg-blue-600 text-white px-3 py-2 rounded font-bold transition no-underline flex items-center gap-2">
-                    <i class="fas fa-file-csv"></i> Pobierz CSV
-                </a>
+                <div class="flex justify-between items-start mb-6">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fas fa-film text-cinema-accent"></i> Top Movies
+                    </h2>
+                    <a th:href="@{/api/v1/reports/movies/csv}"
+                       class="text-xs bg-blue-700 hover:bg-blue-600 text-white px-3 py-2 rounded font-bold transition no-underline flex items-center gap-2">
+                        <i class="fas fa-file-csv"></i> Export CSV
+                    </a>
+                </div>
 
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
                         <tr class="text-gray-400 border-b border-gray-700 text-sm uppercase">
-                            <th class="py-3">Tytuł Filmu</th>
-                            <th class="py-3 text-center">Bilety</th>
-                            <th class="py-3 text-right">Przychód</th>
+                            <th class="py-3">Movie Title</th>
+                            <th class="py-3 text-center">Tickets</th>
+                            <th class="py-3 text-right">Revenue</th>
                         </tr>
                         </thead>
                         <tbody class="text-gray-300 text-sm divide-y divide-gray-800">
+                        <!-- Iterating through movie sales performance -->
                         <tr th:each="row : ${salesByMovie}" class="hover:bg-white/5 transition">
-                            <td class="py-3 font-bold text-white" th:text="${row.movieTitle}">Avatar</td>
-                            <td class="py-3 text-center" th:text="${row.ticketsSold}">120</td>
+                            <td class="py-3 font-bold text-white" th:text="${row.movieTitle}">Movie Name</td>
+                            <td class="py-3 text-center" th:text="${row.ticketsSold}">0</td>
                             <td class="py-3 text-right text-cinema-gold"
-                                th:text="${#numbers.formatDecimal(row.totalRevenue, 1, 'DEFAULT', 2, 'DEFAULT')} + ' zł'">
-                                5000.00 zł
+                                th:text="'$' + ${#numbers.formatDecimal(row.totalRevenue, 1, 2)}">
+                                $0.00
                             </td>
                         </tr>
-                        <tr th:if="${salesByMovie.empty}">
-                            <td colspan="3" class="py-4 text-center text-gray-500 italic">Brak danych.</td>
+                        <!-- Fallback for empty movie sales state -->
+                        <tr th:if="${salesByMovie == null or salesByMovie.empty}">
+                            <td colspan="3" class="py-4 text-center text-gray-500 italic">No performance data available.</td>
                         </tr>
                         </tbody>
                     </table>
@@ -92,6 +113,23 @@
         </div>
     </div>
 </div>
+
+<script>
+    /**
+     * Sales Reports Analytics Initialization
+     */
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('Sales Reporting module initialized.');
+
+        // Logical check for table data presence
+        const tables = document.querySelectorAll('table');
+        tables.forEach(table => {
+            if (table.querySelectorAll('tbody tr').length > 1) {
+                console.log('Report data loaded successfully.');
+            }
+        });
+    });
+</script>
 
 </body>
 </html>

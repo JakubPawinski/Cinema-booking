@@ -10,6 +10,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * DTO representing a summary of a reservation.
@@ -44,4 +45,7 @@ public class ReservationSummaryDto {
     @NotNull(message = "Seance start time is required")
     @Schema(description = "Start time of the seance in ISO 8601 format", example = "2024-12-31T18:30:00")
     private LocalDateTime seanceStartTime;
+
+    @Schema(description = "List of tickets associated with the reservation")
+    private List<TicketDto> tickets;
 }

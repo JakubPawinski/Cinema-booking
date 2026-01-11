@@ -1,10 +1,12 @@
 package cinema.booking.cinemabooking.mapper;
 
 import cinema.booking.cinemabooking.dto.response.ReservationSummaryDto;
+import cinema.booking.cinemabooking.dto.response.TicketDto;
 import cinema.booking.cinemabooking.model.Reservation;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Mapper for converting Reservation entities to ReservationSummaryDto.
@@ -29,6 +31,15 @@ public class ReservationMapper {
             seanceStartTime = reservation.getTickets().getFirst().getSeance().getStartTime();
         }
 
+        List<TicketDto> ticketDtos = reservation.getTickets().stream()
+                .map(ticket -> new TicketDto(
+                        ticket.getId(),
+                        ticket.getSeat().getId(),
+                        ticket.getSeat().getSeatNumber(),
+                        ticket.getSeat().getRowNumber()
+                ))
+                .toList();
+
         return ReservationSummaryDto.builder()
                 .id(reservation.getId())
                 .status(reservation.getStatus())
@@ -37,6 +48,7 @@ public class ReservationMapper {
                 .ticketCount(reservation.getTickets().size())
                 .movieTitle(movieTitle)
                 .seanceStartTime(seanceStartTime)
+                .tickets(ticketDtos)
                 .build();
     }
 }
