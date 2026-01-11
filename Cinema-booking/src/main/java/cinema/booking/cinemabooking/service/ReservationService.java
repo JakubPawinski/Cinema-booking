@@ -240,6 +240,12 @@ public class ReservationService {
 
         log.info("Ticket ID: {} removed successfully from reservation ID: {}", ticketId, reservationId);
 
+        // If no tickets remain, cancel the reservation
+        if (reservation.getTickets().isEmpty()) {
+            log.info("Reservation ID: {} has no more tickets, cancelling reservation", reservationId);
+            reservation.setStatus(ReservationStatus.CANCELLED);
+            reservationRepository.save(reservation);
+        }
         return reservationMapper.toSummaryDto(reservation);
     }
 
