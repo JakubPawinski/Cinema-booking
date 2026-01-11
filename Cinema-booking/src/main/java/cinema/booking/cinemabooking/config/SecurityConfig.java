@@ -43,6 +43,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/reservations/**").authenticated()
                         .requestMatchers("/api/v1/reports/**").hasRole("ADMIN")
                         .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form

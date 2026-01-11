@@ -27,6 +27,7 @@ public class UserService {
      * Registers a new user.
      *
      * @param dto the UserDto containing user registration data
+     * @throws UserAlreadyExistsException if username or email already exists
      */
     @Transactional
     public void register(UserDto dto) {
@@ -51,6 +52,7 @@ public class UserService {
      * Validates the UserDto for uniqueness of username and email.
      *
      * @param dto the UserDto to validate
+     * @throws UserAlreadyExistsException if username or email already exists
      */
     private void validateUserDto(UserDto dto) {
         if (userRepository.existsByUsername(dto.getUsername())) {

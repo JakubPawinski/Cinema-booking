@@ -2,6 +2,10 @@ package cinema.booking.cinemabooking.controller.api;
 
 import cinema.booking.cinemabooking.dto.response.MovieWithSeancesDto;
 import cinema.booking.cinemabooking.service.SeanceService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -20,6 +24,7 @@ import java.util.List;
 @RequestMapping("/api/v1/repertoires")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "Repertoires", description = "Endpoints for managing movie repertoires")
 public class RepertoireRestController {
     private final SeanceService seanceService;
 
@@ -31,6 +36,12 @@ public class RepertoireRestController {
      * @return list of movies with their seances for the specified date
      */
     @GetMapping
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved the repertoire"),
+            @ApiResponse(responseCode = "400", description = "Invalid date format"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    @Operation(summary = "Get repertoire for a specific date", description = "Retrieve the list of movies with their seances for a given date. If no date is provided, the current date is used.")
     public ResponseEntity<List<MovieWithSeancesDto>> getRepertoire(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         log.info("API: Fetching repertoire for date: {}", date);
 

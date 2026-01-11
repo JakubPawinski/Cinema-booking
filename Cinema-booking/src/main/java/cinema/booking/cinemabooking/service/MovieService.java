@@ -46,6 +46,7 @@ public class MovieService {
      * Update existing movie
      * @param id Movie ID
      * @param dto MovieRequestDto
+     * @throws ResourceNotFoundException if movie not found
      */
     @Transactional
     public void updateMovie(Long id, MovieRequestDto dto) {
@@ -80,6 +81,7 @@ public class MovieService {
      * Get movie by ID
      * @param id Movie ID
      * @return MovieDto
+     * @throws ResourceNotFoundException if movie not found
      */
     @Transactional(readOnly = true)
     public MovieDto getMovieById(Long id) {
@@ -95,11 +97,15 @@ public class MovieService {
     /**
      * Delete movie by ID
      * @param id Movie ID
+     * @throws ResourceNotFoundException if movie not found
      */
     @Transactional
     public void deleteMovie(Long id) {
         log.info("Deleting movie with ID: {}", id);
-        Movie m = movieRepository.findById(id).orElse(null);
+        Movie m = movieRepository.findById(id).orElseThrow( () -> {
+            log.warn("Movie with ID {} not found", id);
+            return new ResourceNotFoundException("Movie not found");
+        });
 
         if (m != null) {
             if (isLocalImage(m.getImageUrl())) {

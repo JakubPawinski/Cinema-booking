@@ -79,6 +79,7 @@ public class SeanceService {
      * Get detailed information about a specific seance.
      * @param seanceId the ID of the seance
      * @return SeanceDto with detailed information
+     * @throws ResourceNotFoundException if seance not found
      */
     @Transactional(readOnly = true)
     public SeanceDto getSeanceDetails(Long seanceId) {
@@ -97,6 +98,7 @@ public class SeanceService {
      * Get the status of seats (occupied/free) for a specific seance.
      * @param seanceId the ID of the seance
      * @return list of SeatDto with occupancy status
+     * @throws ResourceNotFoundException if seance not found
      */
     @Transactional(readOnly = true)
     public List<SeatDto> getSeatsStatusForMovie(Long seanceId) {
@@ -127,6 +129,8 @@ public class SeanceService {
     /**
      * Create a new seance with validation to prevent overlapping seances.
      * @param dto the SeanceRequestDto containing seance details
+     * @throws ResourceNotFoundException if movie or room not found
+     * @throws SeanceConflictException if seance overlaps with existing seance
      */
     @Transactional
     public void createSeance(SeanceRequestDto dto) {

@@ -2,6 +2,9 @@ package cinema.booking.cinemabooking.controller.api;
 
 import cinema.booking.cinemabooking.service.CsvExportService;
 import cinema.booking.cinemabooking.service.ReportService;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.InputStreamResource;
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/reports")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "Reports", description = "Endpoints for generating sales reports")
 public class ReportRestController {
 
     private final ReportService reportService;
@@ -30,6 +34,10 @@ public class ReportRestController {
      * @return CSV file containing daily sales report
      */
     @GetMapping("/daily/csv")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully downloaded daily sales report as CSV"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     public ResponseEntity<Resource> downloadDailyReportCsv() {
         log.info("API: Downloading daily sales report as CSV");
 
@@ -48,6 +56,10 @@ public class ReportRestController {
      * @return CSV file containing movie sales report
      */
     @GetMapping("/movies/csv")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully downloaded movie sales report as CSV"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     public ResponseEntity<Resource> downloadMovieReportCsv() {
         log.info("API: Downloading movie sales report as CSV");
 

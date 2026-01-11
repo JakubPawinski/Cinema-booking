@@ -50,6 +50,9 @@ public class ReservationService {
      * @param request  the reservation request data
      * @param username the username of the user making the reservation
      * @return summary of the created reservation
+     * @throws ResourceNotFoundException          if the seance or user is not found
+     * @throws SeatAlreadyOccupiedException       if any of the requested seats are already taken
+     * @throws InvalidReservationActionException  if the reservation request is invalid
      */
     @Transactional
     public ReservationSummaryDto createReservation(CreateReservationDto request, String username) {
@@ -134,6 +137,8 @@ public class ReservationService {
     /**
      * Pay for a reservation, updating its status and generating unique codes.
      * @param reservationId the ID of the reservation to pay for
+     * @throws ResourceNotFoundException if the reservation is not found
+     * @throws InvalidReservationActionException if the reservation cannot be paid
      */
     @Transactional
     public void payForReservation(Long reservationId) {
@@ -175,6 +180,7 @@ public class ReservationService {
      * @param size the page size
      * @param status optional reservation status to filter by
      * @return paginated list of reservation summaries
+     * @throws ResourceNotFoundException if the user is not found
      */
     public Page<ReservationSummaryDto> getUserReservations(String username, int page, int size, ReservationStatus status) {
         log.debug("Fetching reservations for user: {}, page: {}, size: {}, status {}", username, page, size, status);
@@ -202,6 +208,8 @@ public class ReservationService {
      * @param reservationId the ID of the reservation
      * @param ticketId the ID of the ticket to remove
      * @return updated reservation summary
+     * @throws ResourceNotFoundException if the reservation or ticket is not found
+     * @throws InvalidReservationActionException if the reservation cannot be modified
      */
     @Transactional
     public ReservationSummaryDto removeTicket(Long reservationId, Long ticketId) {
@@ -241,6 +249,8 @@ public class ReservationService {
      * @param ticketId the ID of the ticket to update
      * @param newType the new ticket type
      * @return updated reservation summary
+     * @throws ResourceNotFoundException if the reservation or ticket is not found
+     * @throws InvalidReservationActionException if the reservation cannot be modified
      */
     @Transactional
     public ReservationSummaryDto updateTicketType(Long reservationId, Long ticketId, TicketType newType) {
@@ -278,6 +288,8 @@ public class ReservationService {
     /**
      * Cancel a reservation if it is not paid.
      * @param reservationId the ID of the reservation to cancel
+     * @throws ResourceNotFoundException if the reservation is not found
+     * @throws InvalidReservationActionException if the reservation cannot be cancelled
      */
     public void cancelReservation(Long reservationId) {
         log.info("Cancelling reservation ID: {}", reservationId);
@@ -303,6 +315,8 @@ public class ReservationService {
      * @param reservationId the ID of the reservation
      * @param username the username of the user
      * @return the reservation details
+     * @throws ResourceNotFoundException if the reservation is not found
+     * @throws SecurityException if the user does not own the reservation
      */
     @Transactional(readOnly = true)
     public Reservation getReservationDetails(Long reservationId, String username) {
@@ -328,6 +342,9 @@ public class ReservationService {
      * @param reservationId the ID of the reservation
      * @param seatId the ID of the seat to add
      * @return updated reservation summary
+     * @throws ResourceNotFoundException if the reservation or seat is not found
+     * @throws InvalidReservationActionException if the reservation cannot be modified
+     * @throws SeatAlreadyOccupiedException if the seat is already taken
      */
     @Transactional
     public ReservationSummaryDto addTicketToReservation(Long reservationId, Long seatId) {
@@ -379,6 +396,8 @@ public class ReservationService {
      * @param reservationId the ID of the reservation
      * @param username the username of the user
      * @return ByteArrayInputStream containing the PDF data
+     * @throws ResourceNotFoundException if the reservation is not found
+     * @throws InvalidReservationActionException if the reservation is not paid
      */
     @Transactional(readOnly = true)
     public ByteArrayInputStream generatePdfForReservation(Long reservationId, String username) {

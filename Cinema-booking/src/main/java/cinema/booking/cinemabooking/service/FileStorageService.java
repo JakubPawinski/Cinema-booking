@@ -31,6 +31,7 @@ public class FileStorageService {
      *
      * @param uploadDir         Directory where files will be uploaded.
      * @param extensions        Comma-separated list of allowed file extensions.
+     * @throws FileStorageException if the upload directory cannot be created.
      */
     public FileStorageService(
             @Value("${app.upload.dir:uploads}") String uploadDir,
@@ -54,6 +55,8 @@ public class FileStorageService {
      * @param file        The file to be stored.
      * @param movieTitle  The title of the movie associated with the file.
      * @return The relative URL path to access the stored file.
+     * @throws FileStorageException if there is an error during file storage.
+     * @throws IllegalArgumentException if the file is empty or has an invalid name.
      */
     public String storeFile(MultipartFile file, String movieTitle) {
         log.info("Attempting to store file for movie: {}", movieTitle);

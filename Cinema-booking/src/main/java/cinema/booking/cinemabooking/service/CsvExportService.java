@@ -29,6 +29,7 @@ public class CsvExportService {
      *
      * @param data List of DailySalesDto containing daily sales information.
      * @return ByteArrayInputStream representing the generated CSV file.
+     * @throws FileStorageException if an I/O error occurs during CSV generation.
      */
     public ByteArrayInputStream generateDailySalesCsv(List<DailySalesDto> data) {
         log.info("Generating daily sales CSV with {} records", data.size());
@@ -64,6 +65,7 @@ public class CsvExportService {
      *
      * @param data List of SalesReportDto containing movie sales information.
      * @return ByteArrayInputStream representing the generated CSV file.
+     * @throws FileStorageException if an I/O error occurs during CSV generation.
      */
     public ByteArrayInputStream generateMovieSalesCsv(List<SalesReportDto> data) {
         log.info("Generating movie sales CSV with {} records", data.size());

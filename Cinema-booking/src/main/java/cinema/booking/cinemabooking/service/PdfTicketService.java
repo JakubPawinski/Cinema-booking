@@ -39,6 +39,7 @@ public class PdfTicketService {
      *
      * @param reservation The reservation containing the tickets.
      * @return ByteArrayInputStream stream containing the generated PDF data.
+     * @throws FileStorageException if PDF generation fails.
      */
     public ByteArrayInputStream generateReservationPdf(Reservation reservation) {
         log.info("Starting PDF generation for reservation code: {}", reservation.getReservationCode()); //
