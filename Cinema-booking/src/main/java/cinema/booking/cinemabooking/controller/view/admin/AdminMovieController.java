@@ -86,6 +86,8 @@ public class AdminMovieController {
         model.addAttribute("movieId", id);
         model.addAttribute("isEdit", true);
 
+        model.addAttribute("currentGallery", movieDto.getGalleryImages());
+
         return "admin/movie-form";
     }
 
@@ -112,5 +114,17 @@ public class AdminMovieController {
         log.info("Admin: Deleting movie ID: {}", id);
         movieService.deleteMovie(id);
         return "redirect:/admin/movies";
+    }
+
+    /**
+     * Handle deletion of a gallery image from a movie
+     * @param id Movie ID
+     * @param imagePath Path of the image to delete
+     * @return redirect to edit movie form
+     */
+    @DeleteMapping("/edit/{id}/gallery")
+    public String deleteGalleryImage(@PathVariable Long id, @RequestParam("image") String imagePath) {
+        movieService.removeGalleryImage(id, imagePath);
+        return "redirect:/admin/movies/edit/" + id;
     }
 }

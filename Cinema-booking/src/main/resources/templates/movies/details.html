@@ -9,26 +9,19 @@
 
 <div layout:fragment="content">
 
-    <!--
-        Hero Section: Movie Header
-    -->
     <div class="relative h-[50vh] w-full overflow-hidden">
-        <!-- Blurred Parallax Background -->
         <div class="absolute inset-0 bg-cover bg-center blur-xl scale-110 opacity-50"
-             th:style="'background-image: url(' + ${movie.imageUrl} + ');'">
+             th:style="'background-image: url(' + @{${movie.imageUrl}} + ');'">
         </div>
-        <!-- Dark Overlay Gradient -->
         <div class="absolute inset-0 bg-gradient-to-t from-cinema-black via-cinema-black/80 to-transparent"></div>
 
         <div class="container mx-auto px-6 h-full flex items-end pb-12 relative z-10">
             <div class="flex flex-col md:flex-row gap-8 items-end">
-                <!-- High-quality Poster -->
-                <img th:src="${movie.imageUrl}"
+                <img th:src="@{${movie.imageUrl}}"
                      alt="Movie Poster"
-                     class="w-64 rounded-lg shadow-2xl border-4 border-white/10 hidden md:block">
+                     class="w-64 rounded-lg shadow-2xl border-4 border-white/10 hidden md:block object-cover h-96">
 
                 <div class="mb-4">
-                    <!-- Metadata Tags -->
                     <div class="flex gap-3 mb-4">
                         <span class="bg-cinema-accent text-white px-3 py-1 rounded text-xs font-bold uppercase tracking-wider"
                               th:text="${movie.genre}">GENRE</span>
@@ -48,23 +41,19 @@
         </div>
     </div>
 
-    <!-- Main Content Section -->
     <section class="py-12 bg-cinema-black text-gray-300">
         <div class="container mx-auto px-6">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
 
-                <!-- Left Column: Synopsis and Production Info -->
                 <div class="lg:col-span-2 space-y-12">
 
-                    <!-- Plot Description -->
                     <div class="bg-cinema-dark p-8 rounded-2xl border border-white/5 shadow-xl">
                         <h2 class="text-2xl font-bold text-white mb-4 border-l-4 border-cinema-accent pl-4 uppercase tracking-tight">Plot</h2>
-                        <p class="text-lg leading-relaxed text-gray-400" th:text="${movie.description}">
+                        <p class="text-lg leading-relaxed text-gray-400 whitespace-pre-line" th:text="${movie.description}">
                             Loading description...
                         </p>
                     </div>
 
-                    <!-- Credits Grid -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="bg-cinema-dark p-6 rounded-xl border border-white/5">
                             <h3 class="text-cinema-gold font-bold mb-2 uppercase text-sm tracking-widest">Director</h3>
@@ -76,7 +65,6 @@
                         </div>
                     </div>
 
-                    <!-- Video Trailer Integration: Converts YouTube watch URLs to embed format -->
                     <div th:if="${movie.trailerUrl != null and !movie.trailerUrl.isEmpty()}" class="space-y-4">
                         <h2 class="text-2xl font-bold text-white border-l-4 border-cinema-accent pl-4 uppercase tracking-tight">Trailer</h2>
                         <div class="aspect-video rounded-2xl overflow-hidden shadow-2xl border border-gray-800">
@@ -91,39 +79,80 @@
                     </div>
                 </div>
 
-                <!-- Right Column: Call to Action & Media Gallery -->
                 <div class="space-y-8">
-                    <!-- Booking CTA Card -->
                     <div class="bg-gradient-to-br from-cinema-dark to-gray-900 p-8 rounded-2xl border border-white/10 top-24 shadow-2xl">
                         <h3 class="text-2xl font-bold text-white mb-2 text-center">Ready for the show?</h3>
                         <p class="text-center text-gray-500 mb-6 text-sm">Check upcoming screenings for this movie.</p>
 
-                        <a th:href="@{/seances(movieId=${movie.id})}"
+                        <a th:href="@{/}"
                            class="block w-full bg-cinema-accent hover:bg-cinema-accentHover text-white text-center font-bold py-4 rounded-xl transition transform hover:scale-105 shadow-lg shadow-purple-900/50 uppercase tracking-wider no-underline">
                             <i class="fas fa-ticket-alt mr-2"></i> Book Tickets
                         </a>
                     </div>
 
-                    <!-- Media Gallery Grid -->
-                    <div class="space-y-4">
-                        <h3 class="font-bold text-white uppercase tracking-wider text-sm border-b border-gray-700 pb-2">Gallery</h3>
+                    <div class="space-y-4" th:if="${not #lists.isEmpty(movie.galleryImages)}">
+                        <h3 class="font-bold text-white uppercase tracking-wider text-sm border-b border-gray-700 pb-2">
+                            Gallery <span class="text-gray-500 text-xs ml-2" th:text="'(' + ${#lists.size(movie.galleryImages)} + ' photos)'"></span>
+                        </h3>
+
                         <div class="grid grid-cols-2 gap-2">
-                            <div class="aspect-square rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition col-span-2">
-                                <img th:src="${movie.imageUrl}" class="w-full h-full object-cover" alt="Gallery primary">
-                            </div>
-                            <div class="aspect-square rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition">
-                                <img src="https://images.unsplash.com/photo-1485846234645-a62644f84728?q=80&w=400" class="w-full h-full object-cover grayscale hover:grayscale-0 transition" alt="Stills">
-                            </div>
-                            <div class="aspect-square rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition">
-                                <img src="https://images.unsplash.com/photo-1517604931442-710536443883?q=80&w=400" class="w-full h-full object-cover grayscale hover:grayscale-0 transition" alt="Atmosphere">
+                            <div th:each="img, stat : ${movie.galleryImages}"
+                                 th:class="${stat.index == 0} ? 'col-span-2 aspect-video rounded-lg overflow-hidden cursor-pointer group relative' : 'aspect-square rounded-lg overflow-hidden cursor-pointer group relative'"
+                                 th:onclick="openLightbox([[ @{${img}} ]])">
+
+                                <img th:src="@{${img}}"
+                                     class="w-full h-full object-cover group-hover:scale-110 transition duration-500 ease-in-out"
+                                     alt="Gallery Image">
+
+                                <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition duration-300"></div>
                             </div>
                         </div>
+                    </div>
+
+                    <div th:if="${#lists.isEmpty(movie.galleryImages)}" class="text-gray-600 text-sm text-center italic mt-4">
+                        No gallery images available.
                     </div>
                 </div>
 
             </div>
         </div>
     </section>
+
+    <div id="lightbox" class="fixed inset-0 z-50 hidden bg-black/95 backdrop-blur-sm flex items-center justify-center p-4" onclick="closeLightbox()">
+        <button class="absolute top-4 right-6 text-gray-400 hover:text-white text-4xl z-50 focus:outline-none">
+            &times;
+        </button>
+
+        <div class="relative max-w-5xl max-h-screen w-full flex justify-center">
+            <img id="lightbox-img" src="" class="max-h-[90vh] max-w-full rounded shadow-2xl border border-gray-800 object-contain" onclick="event.stopPropagation()">
+        </div>
+    </div>
+
+    <script>
+        function openLightbox(imageSrc) {
+            const lightbox = document.getElementById('lightbox');
+            const img = document.getElementById('lightbox-img');
+
+            img.src = imageSrc;
+            lightbox.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            const lightbox = document.getElementById('lightbox');
+            const img = document.getElementById('lightbox-img');
+
+            lightbox.classList.add('hidden');
+            img.src = '';
+            document.body.style.overflow = '';
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape") {
+                closeLightbox();
+            }
+        });
+    </script>
 
 </div>
 

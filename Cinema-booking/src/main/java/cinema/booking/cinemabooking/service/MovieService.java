@@ -12,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * Service for managing movie catalog.
@@ -21,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class MovieService {
     private final MovieRepository movieRepository;
-    private final FileStorageService fileStorageService; // 1. Wstrzykujemy serwis plików
+    private final FileStorageService fileStorageService;
     private final MovieMapper movieMapper;
 
     /**
@@ -37,6 +38,7 @@ public class MovieService {
         movieMapper.updateEntityFromDto(dto, movie);
 
         handleImageUpdate(dto, movie);
+        handleGalleryUpdate(dto, movie);
 
         movieRepository.save(movie);
         log.info("Movie added successfully with ID: {}", movie.getId());
@@ -60,6 +62,7 @@ public class MovieService {
 
         movieMapper.updateEntityFromDto(dto, movie);
         handleImageUpdate(dto, movie);
+        handleGalleryUpdate(dto, movie);
 
         movieRepository.save(movie);
         log.info("Movie with ID {} updated successfully", id);
@@ -119,6 +122,32 @@ public class MovieService {
         }
     }
 
+    /**
+     * Remove a gallery image from a movie
+     * @param movieId Movie ID
+     * @param imagePath Path of the image to remove
+     * @throws ResourceNotFoundException if movie not found
+     */
+    @Transactional
+    public void removeGalleryImage(Long movieId, String imagePath) {
+        log.info("Removing gallery image '{}' from movie ID: {}", imagePath, movieId);
+
+        Movie movie = movieRepository.findById(movieId)
+                .orElseThrow(() -> new ResourceNotFoundException("Movie not found"));
+
+        // Remove image from gallery
+        boolean removed = movie.getGalleryImages().remove(imagePath);
+
+        // If removed, and it's a local image, delete the file
+        if (removed) {
+            if (isLocalImage(imagePath)) {
+                log.debug("Deleting local gallery image: {}", imagePath);
+                fileStorageService.deleteFile(imagePath);
+            }
+            movieRepository.save(movie);
+        }
+    }
+
 
     /**
      * Handles image update logic for adding or updating a movie.
@@ -151,6 +180,40 @@ public class MovieService {
                     fileStorageService.deleteFile(movie.getImageUrl());
                 }
                 movie.setImageUrl(dto.getImageUrl());
+            }
+        }
+    }
+
+    /**
+     * Handles gallery update logic for adding images to a movie's gallery.
+     * @param dto the MovieRequestDto containing new gallery data
+     * @param movie the Movie entity to update
+     */
+    private void handleGalleryUpdate(MovieRequestDto dto, Movie movie) {
+        // Local image upload
+        if (dto.getGalleryFiles() != null && !dto.getGalleryFiles().isEmpty()) {
+            // Upload and add each file to the gallery
+            for (MultipartFile file : dto.getGalleryFiles()) {
+                if (!file.isEmpty()) {
+                    String path = fileStorageService.storeFile(file, dto.getTitle());
+                    movie.getGalleryImages().add(path);
+                    log.debug("Added gallery image: {}", path);
+                }
+            }
+        }
+
+        // External image URLs
+        if (dto.getGalleryUrlsText() != null && !dto.getGalleryUrlsText().isBlank()) {
+            String[] urls = dto.getGalleryUrlsText().split("\\r?\\n");
+
+            // Add each URL to the gallery
+            for (String url : urls) {
+                String cleanUrl = url.trim();
+                // Avoid adding empty URLs
+                if (!cleanUrl.isEmpty()) {
+                    movie.getGalleryImages().add(cleanUrl);
+                    log.debug("Added link to gallery: {}", cleanUrl);
+                }
             }
         }
     }

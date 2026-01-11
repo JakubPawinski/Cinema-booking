@@ -32,6 +32,7 @@ public class MovieMapper {
                 .director(movie.getDirector() != null ? movie.getDirector() : "Unknown")
                 .mainCast(movie.getMainCast() != null ? movie.getMainCast() : "Various")
                 .ageRating(movie.getAgeRating() != null ? movie.getAgeRating() : "Not Rated")
+                .galleryImages(movie.getGalleryImages())
                 .build();
     }
 

@@ -8,6 +8,8 @@ import jakarta.validation.constraints.Size;
 import org.hibernate.validator.constraints.URL;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 /**
  * DTO for creating or updating movie information.
  */
@@ -82,4 +84,10 @@ public class MovieRequestDto {
     @URL(message = "Invalid trailer URL")
     @Schema(description = "The URL of the movie's trailer", example = "http://example.com/trailer.mp4")
     private String trailerUrl;
+
+    @Schema(description = "Gallery image files for the movie")
+    private List<MultipartFile> galleryFiles;
+
+    @Schema(description = "Gallery image URLs for the movie, separated by commas")
+    private String galleryUrlsText;
 }

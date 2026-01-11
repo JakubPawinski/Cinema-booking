@@ -56,7 +56,6 @@ public class Movie {
     /**
      * URL of the movie's poster image.
      */
-    @URL(message = "Invalid image URL")
     private String imageUrl;
 
     /**
@@ -86,4 +85,12 @@ public class Movie {
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @ToString.Exclude // Exclude seances from toString to prevent circular dependencies
     private List<Seance> seances = new ArrayList<>();
+
+    /**
+     * Gallery images for the movie.
+     */
+    @ElementCollection
+    @CollectionTable(name = "movie_gallery", joinColumns = @JoinColumn(name = "movie_id"))
+    @Column(name = "image_url")
+    private List<String> galleryImages = new ArrayList<>();
 }

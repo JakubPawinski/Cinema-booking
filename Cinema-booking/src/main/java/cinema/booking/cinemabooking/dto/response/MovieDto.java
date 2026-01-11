@@ -9,6 +9,8 @@ import lombok.Builder;
 import lombok.Data;
 import org.hibernate.validator.constraints.URL;
 
+import java.util.List;
+
 /**
  * DTO representing movie details in responses.
  */
@@ -57,4 +59,7 @@ public class MovieDto {
     @NotBlank(message = "Age rating cannot be blank")
     @Schema(description = "Age rating of the movie", example = "PG-13")
     private String ageRating;
+
+    @Schema(description = "Gallery images of the movie", example = "[\"http://example.com/image1.jpg\", \"http://example.com/image2.jpg\"]")
+    private List<String> galleryImages;
 }

@@ -8,24 +8,19 @@
 <body>
 
 <div layout:fragment="content">
-    <div class="container mx-auto px-6 py-12 max-w-3xl">
+    <div class="container mx-auto px-6 py-12 max-w-4xl">
 
-        <!-- Header Section: Displays dynamic title based on the action (Create/Edit) -->
         <h1 class="text-3xl font-bold font-serif text-white mb-8 border-l-4 border-cinema-accent pl-4"
             th:text="${isEdit} ? 'EDIT MOVIE #' + ${movieId} : 'ADD NEW MOVIE'">
             HEADER
         </h1>
 
-        <!--
-            Main Movie Form
-        -->
-        <form th:action="${isEdit} ? @{/admin/movies/edit/{id}(id=${movieId})} : @{/admin/movies/add}"
+        <form th:action="@{${isEdit} ? '/admin/movies/edit/' + ${movieId} : '/admin/movies/add'}"
               th:object="${movie}"
               method="post"
               enctype="multipart/form-data"
-              class="space-y-6 bg-cinema-dark p-8 rounded-xl border border-gray-800 shadow-2xl">
+              class="space-y-6 bg-cinema-dark p-8 rounded-xl border border-gray-800 shadow-2xl relative z-10">
 
-            <!-- Primary Information Grid (Title & Genre) -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label class="block text-gray-400 mb-2 text-sm">Title</label>
@@ -39,7 +34,6 @@
                 </div>
             </div>
 
-            <!-- Technical Details (Duration & Rating) -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label class="block text-gray-400 mb-2 text-sm">Duration (min)</label>
@@ -53,7 +47,6 @@
                 </div>
             </div>
 
-            <!-- Production Info (Director & Cast) -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label class="block text-gray-400 mb-2 text-sm">Director</label>
@@ -61,44 +54,38 @@
                            class="w-full bg-black border border-gray-700 rounded p-3 text-white focus:border-cinema-accent focus:outline-none">
                 </div>
                 <div>
-                    <label class="block text-gray-400 mb-2 text-sm">Cast (comma separated)</label>
-                    <input type="text" th:field="*{mainCast}"
+                    <label class="block text-gray-400 mb-2 text-sm">Cast</label>
+                    <input type="text" th:field="*{mainCast}" placeholder="Comma separated names"
                            class="w-full bg-black border border-gray-700 rounded p-3 text-white focus:border-cinema-accent focus:outline-none">
                 </div>
             </div>
 
-            <!-- Description Area -->
             <div>
                 <label class="block text-gray-400 mb-2 text-sm">Description</label>
                 <textarea th:field="*{description}" rows="4" required
                           class="w-full bg-black border border-gray-700 rounded p-3 text-white focus:border-cinema-accent focus:outline-none"></textarea>
             </div>
 
-            <!-- Media Section: Poster Upload and Trailer Link -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-
                 <div class="bg-black/30 p-4 rounded border border-gray-800">
                     <label class="block text-gray-400 mb-3 text-sm font-bold">Movie Poster</label>
-
                     <div class="mb-4">
-                        <span class="text-xs text-gray-500 block mb-1">Option 1: Upload from disk</span>
+                        <span class="text-xs text-gray-500 block mb-1">Upload from disk</span>
                         <input type="file" th:field="*{imageFile}" accept="image/*"
                                class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-gray-800 file:text-white hover:file:bg-cinema-accent transition cursor-pointer">
                     </div>
-
                     <div class="text-center text-xs text-gray-600 my-2 font-mono">- OR -</div>
-
                     <div class="mb-2">
-                        <span class="text-xs text-gray-500 block mb-1">Option 2: URL Link</span>
+                        <span class="text-xs text-gray-500 block mb-1">Paste URL</span>
                         <input type="text" th:field="*{imageUrl}" placeholder="https://..."
                                class="w-full bg-black border border-gray-700 rounded p-2 text-sm text-white focus:border-cinema-accent focus:outline-none">
                     </div>
-
-                    <!-- Poster Preview (Visible during edit if URL exists) -->
-                    <div th:if="${isEdit and movie.imageUrl != null and !#strings.isEmpty(movie.imageUrl)}" class="mt-4 pt-4 border-t border-gray-800">
+                    <div th:if="${isEdit and movie.imageUrl != null and !#strings.isEmpty(movie.imageUrl)}"
+                         class="mt-4 pt-4 border-t border-gray-800">
                         <p class="text-xs text-gray-500 mb-2">Current poster:</p>
                         <div class="relative w-32 h-48 overflow-hidden rounded border border-gray-700 group">
-                            <img th:src="${movie.imageUrl}" alt="Preview" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                            <img th:src="${#strings.startsWith(movie.imageUrl, '/')} ? ${movie.imageUrl} : ${movie.imageUrl}"
+                                 alt="Preview" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
                         </div>
                     </div>
                 </div>
@@ -107,11 +94,68 @@
                     <label class="block text-gray-400 mb-2 text-sm">Trailer URL (YouTube)</label>
                     <input type="url" th:field="*{trailerUrl}"
                            class="w-full bg-black border border-gray-700 rounded p-3 text-white focus:border-cinema-accent focus:outline-none">
-                    <p class="text-xs text-gray-600 mt-2">Paste YouTube video link (e.g., https://www.youtube.com/watch?v=...)</p>
+                    <p class="text-xs text-gray-600 mt-2">Example: https://www.youtube.com/watch?v=...</p>
                 </div>
             </div>
 
-            <!-- Form Actions -->
+            <div class="bg-black/30 p-6 rounded-xl border border-gray-800">
+                <h3 class="text-lg font-bold text-white mb-4 border-b border-gray-700 pb-2 flex items-center gap-2">
+                    <i class="fas fa-images text-cinema-accent"></i> Photo Gallery
+                </h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <label class="block text-gray-400 mb-2 text-sm font-bold">
+                            <i class="fas fa-upload mr-1"></i> Upload Images
+                        </label>
+                        <input type="file" th:field="*{galleryFiles}" multiple accept="image/*"
+                               class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-gray-800 file:text-white hover:file:bg-cinema-accent transition cursor-pointer bg-black/50 p-2 rounded border border-gray-700">
+                        <p class="text-xs text-gray-500 mt-2">Hold <strong>Ctrl</strong> to select multiple.</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-400 mb-2 text-sm font-bold">
+                            <i class="fas fa-link mr-1"></i> Or Paste URLs
+                        </label>
+                        <textarea th:field="*{galleryUrlsText}" rows="4"
+                                  placeholder="https://..."
+                                  class="w-full bg-black border border-gray-700 rounded p-3 text-white focus:border-cinema-accent focus:outline-none font-mono text-xs resize-none"></textarea>
+                        <p class="text-xs text-gray-500 mt-2">Paste one URL per line.</p>
+                    </div>
+                </div>
+
+                <div th:if="${isEdit} and ${currentGallery != null} and ${not #lists.isEmpty(currentGallery)}"
+                     class="mt-6 pt-4 border-t border-gray-700">
+
+                    <label class="block text-gray-400 mb-3 text-sm">Current Gallery Images:</label>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4 isolate">
+                        <div th:each="img : ${currentGallery}"
+                             class="relative z-10 group aspect-square rounded-xl overflow-hidden border border-gray-700 bg-black shadow-lg">
+
+                            <img th:src="@{${img}}"
+                                 alt="Gallery Image"
+                                 class="w-full h-full object-cover transition duration-300">
+
+                            <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-20">
+
+                                <button type="button"
+                                        th:data-image="${img}"
+                                        onclick="triggerDelete(this)"
+                                        class="bg-red-600 hover:bg-red-700 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-2xl transform hover:scale-110 transition border-0 cursor-pointer"
+                                        title="Delete Image">
+
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="flex justify-end gap-4 pt-6 border-t border-gray-800">
                 <a th:href="@{/admin/movies}" class="px-6 py-3 rounded border border-gray-600 text-gray-400 hover:text-white hover:border-white transition no-underline">
                     Cancel
@@ -121,17 +165,41 @@
                 </button>
             </div>
         </form>
-    </div>
-</div>
 
-<script>
-    /**
-     * Movie Form Initialization
-     */
-    document.addEventListener('DOMContentLoaded', () => {
-        console.log('Movie management form initialized.');
-    });
-</script>
+        <form id="galleryDeleteForm"
+              th:if="${isEdit}"
+              th:action="@{/admin/movies/edit/{id}/gallery(id=${movieId})}"
+              method="post"
+              style="display: none;">
+            <input type="hidden" name="_method" value="delete"/>
+            <input type="hidden" name="image" id="deleteImageInput" />
+        </form>
+
+    </div>
+
+    <script>
+        function triggerDelete(button) {
+            const imagePath = button.getAttribute('data-image');
+
+            if (confirm('Are you sure you want to delete this image from the gallery?')) {
+                const form = document.getElementById('galleryDeleteForm');
+                const input = document.getElementById('deleteImageInput');
+
+                if (form && input) {
+                    input.value = imagePath;
+                    form.submit();
+                } else {
+                    console.error("Gallery delete form or input not found.");
+                    alert("An error occurred. Please try again.");
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Movie management form initialized.');
+        });
+    </script>
+</div>
 
 </body>
 </html>
