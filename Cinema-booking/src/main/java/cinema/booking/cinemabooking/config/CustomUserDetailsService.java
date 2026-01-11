@@ -26,7 +26,6 @@ public class CustomUserDetailsService implements UserDetailsService {
      * @param username the username to search for
      * @return UserDetails - object with user data
      * @throws UsernameNotFoundException - if user does not exists
-     *
      */
     @Override
     public UserDetails loadUserByUsername(@NonNull String username) throws UsernameNotFoundException {
