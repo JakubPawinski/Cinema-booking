@@ -69,7 +69,7 @@ public class FileStorageService {
 
         // Get original filename
         String originalFilename = file.getOriginalFilename();
-        if (originalFilename == null) {
+        if (originalFilename == null || originalFilename.isBlank()) {
             log.warn("Upload attempt failed: Original filename is null");
             throw new IllegalArgumentException("Original filename is invalid");
         }
