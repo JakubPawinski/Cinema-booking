@@ -1,15 +1,24 @@
 package cinema.booking.cinemabooking.controller.view;
 
+import cinema.booking.cinemabooking.exception.ResourceNotFoundException;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
  * Global Controller Advice.
  * Adds common attributes to the model for all View Controllers.
  */
-@ControllerAdvice(basePackages = "cinema.booking.cinemabooking.controller.view")
+@ControllerAdvice
+@Slf4j
 public class GlobalControllerAdvice {
 
     /**
@@ -44,5 +53,43 @@ public class GlobalControllerAdvice {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return auth != null && auth.getAuthorities().stream()
                 .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+    }
+
+    /**
+     * Handles exceptions related to invalid reservation actions.
+     */
+    @ExceptionHandler({ResourceNotFoundException.class, NoResourceFoundException.class})
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public String handleResourceNotFound(Exception ex, Model model) {
+        log.warn("View 404 Error: {}", ex.getMessage());
+        model.addAttribute("errorMessage", ex.getMessage());
+        model.addAttribute("errorCode", "404");
+        return "error/error-page";
+    }
+
+    /**
+     * Handles access denied exceptions.
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public String handleAccessDenied(AccessDeniedException e, Model model) {
+        log.warn("View 403 Error: {}", e.getMessage());
+
+        model.addAttribute("errorMessage", e.getMessage());
+        model.addAttribute("errorCode", "403");
+
+        return "error/error-page";
+    }
+
+    /**
+     * Handles exceptions related to internal server errors.
+     */
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public String handleGlobalException(Exception ex, Model model) {
+        log.error("View Critical Error", ex);
+        model.addAttribute("errorMessage", "An unexpected error occurred. Please try again later.");
+        model.addAttribute("errorCode", "500");
+        return "error/error-page";
     }
 }

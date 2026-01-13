@@ -15,6 +15,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
@@ -92,6 +93,19 @@ public class ApiGlobalExceptionHandler {
         log.warn("API 403 Access Denied: {}", ex.getMessage());
         return createErrorResponse(HttpStatus.FORBIDDEN, "Access denied: You do not have permission to access this resource.", request);
     }
+
+    /**
+     * Handle method argument type mismatch exceptions (HTTP 400).
+     */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponseDto> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
+        log.warn("API Type Mismatch Error: Parameter '{}' with value '{}' could not be converted to type {}",
+                ex.getName(), ex.getValue(), ex.getRequiredType().getSimpleName());
+        String message = String.format("Invalid value '%s' for parameter '%s'. Expected type: %s",
+                ex.getValue(), ex.getName(), ex.getRequiredType().getSimpleName());
+        return createErrorResponse(HttpStatus.BAD_REQUEST, message, request);
+    }
+
 
     /**
      * Helper method to create error response.

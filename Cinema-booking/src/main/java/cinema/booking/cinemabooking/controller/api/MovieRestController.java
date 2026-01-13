@@ -58,7 +58,7 @@ public class MovieRestController {
             @ApiResponse(responseCode = "404", description = "Movie not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public ResponseEntity<MovieDto> getMovieById(Long id) {
+    public ResponseEntity<MovieDto> getMovieById(@PathVariable Long id) {
         log.info("API: Fetching movie by ID: {}", id);
 
         return ResponseEntity.ok(movieService.getMovieById(id));
@@ -69,14 +69,14 @@ public class MovieRestController {
      * @param dto movie data
      * @return HTTP 201 Created
      */
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     @Operation(summary = "Add new movie", description = "Add a new movie to the catalog")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Movie created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid movie data"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public ResponseEntity<Void> addMovie(@Valid @RequestBody MovieRequestDto dto) {
+    public ResponseEntity<Void> addMovie(@Valid @ModelAttribute MovieRequestDto dto) {
         log.info("API: Adding new movie: {}", dto.getTitle());
 
         movieService.addMovie(dto);

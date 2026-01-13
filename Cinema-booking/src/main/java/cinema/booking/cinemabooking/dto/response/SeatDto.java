@@ -1,16 +1,21 @@
 package cinema.booking.cinemabooking.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import lombok.NoArgsConstructor;
 
 /**
  * DTO representing a seat in the cinema.
  */
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class SeatDto {
 
     @NotNull(message = "Seat ID cannot be null")
@@ -27,5 +32,6 @@ public class SeatDto {
 
     @NotNull(message = "Occupancy status must be defined")
     @Schema(description = "Indicates whether the seat is occupied", example = "false")
+    @JsonProperty("isOccupied")
     private boolean isOccupied;
 }

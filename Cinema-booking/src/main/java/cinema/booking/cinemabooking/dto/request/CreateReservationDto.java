@@ -5,7 +5,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.util.List;
 
 /**
@@ -33,6 +36,8 @@ public class CreateReservationDto {
      * Inner class representing a ticket request.
      */
     @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class TicketRequest {
         /**
          * The ID of the seat being reserved.

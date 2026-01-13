@@ -138,7 +138,7 @@ public class PdfTicketService {
         infoTable.addCell(createValueCell(ticketType));
 
         infoTable.addCell(createLabelCell("PRICE:"));
-        infoTable.addCell(createValueCell(String.format("%.2f zł", ticket.getPrice())));
+        infoTable.addCell(createValueCell(String.format("%.2f zl", ticket.getPrice())));
 
         body.addElement(infoTable);
 

@@ -11,30 +11,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.http.HttpMethod;
 
-/**
- * Configuration class for Spring Security
- * Defines security roles, authentication and authorization
- */
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    /**
-     * Bean for password encoding
-     * @return PasswordEncoder instance
-     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    /**
-     * Bean for configuration the security filter chain
-     * @param http HttpSecurity object
-     * @return SecurityFilterChain security filter chain
-     * @throws Exception if configuration fails
-     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -49,18 +35,20 @@ public class SecurityConfig {
                         // Public views
                         .requestMatchers("/", "/movies/**", "/register", "/login").permitAll()
 
-                        // API endpoints
-                        .requestMatchers("/api/v1/movies/**").permitAll()
-                        .requestMatchers("/api/v1/seances/**").permitAll()
-                        .requestMatchers("/api/v1/repertoires/**").permitAll()
-
                         // Admin
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/reports/**").hasRole("ADMIN")
 
-                        // Movie and Seance management (admin only)
-                        .requestMatchers(HttpMethod.POST, "/api/v1/movies/**", "/api/v1/seances/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/movies/**", "/api/v1/seances/**").hasRole("ADMIN")
+                        // Movie and Seance management
+                        .requestMatchers(HttpMethod.POST, "/api/v1/movies/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/seances/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/movies/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/seances/**").hasRole("ADMIN")
+
+                        // API endpoints - GET only public
+                        .requestMatchers(HttpMethod.GET, "/api/v1/movies/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/seances/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/repertoires/**").permitAll()
 
                         // Authenticated users
                         .requestMatchers("/api/v1/reservations/**").authenticated()
@@ -69,7 +57,6 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
 
-                // Form login configuration
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
@@ -77,7 +64,6 @@ public class SecurityConfig {
                         .permitAll()
                 )
 
-                // Logout configuration
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/")
