@@ -90,8 +90,8 @@ class ReservationServiceTest {
         seance.setId(1L);
         seance.setMovie(movie);
         seance.setCinemaRoom(cinemaRoom);
-        seance.setStartTime(LocalDateTime.of(2024, 5, 1, 18, 0));
-        seance.setEndTime(LocalDateTime.of(2024, 5, 1, 20, 0));
+        seance.setStartTime(LocalDateTime.now().plusDays(7));
+        seance.setEndTime(LocalDateTime.now().plusDays(7).plusHours(2));
         seance.setRegularTicketPrice(15.0);
         seance.setReducedTicketPrice(10.0);
 
@@ -717,4 +717,29 @@ class ReservationServiceTest {
         // Assert
         verify(reservationRepository, never()).saveAll(any());
     }
+
+    @Test
+    void testCreateReservationThrowsExceptionWhenSeanceIsPast() {
+        // Arrange
+        seance.setStartTime(LocalDateTime.now().minusHours(1));
+
+        List<CreateReservationDto.TicketRequest> ticketRequests = new ArrayList<>();
+        ticketRequests.add(new CreateReservationDto.TicketRequest(seat.getId(), TicketType.REGULAR));
+
+        CreateReservationDto request = new CreateReservationDto();
+        request.setSeanceId(seance.getId());
+        request.setTickets(ticketRequests);
+
+        when(seanceRepository.findById(seance.getId())).thenReturn(Optional.of(seance));
+
+        // Act & Assert
+        assertThatThrownBy(() -> reservationService.createReservation(request, user.getUsername()))
+                .isInstanceOf(InvalidReservationActionException.class)
+                .hasMessage("Cannot create reservation for past seance.");
+
+        verify(userRepository, never()).findByUsername(any());
+        verify(seatRepository, never()).findAllByIdInWithLock(any());
+        verify(reservationRepository, never()).save(any());
+    }
+
 }

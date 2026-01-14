@@ -202,40 +202,54 @@
          */
         function createMovieCard(movie) {
             const imageUrl = movie.imageUrl || 'https://placehold.co/400x600/1a1a1a/FFF?text=No+Cover';
+            const now = new Date();
 
             let seancesHtml = movie.seances.map(s => {
+                const seanceStartTime = new Date(s.startTime);
+                const isPast = seanceStartTime < now;
+
                 const time = s.startTime.split('T')[1].substring(0, 5);
-                return `
-                    <a href="/booking/seance/${s.id}"
-                       class="text-[11px] bg-white/5 hover:bg-cinema-accent text-gray-300 hover:text-white transition px-3 py-2 rounded-lg border border-white/5 font-mono no-underline">
-                        ${time}
-                    </a>`;
+
+                if (isPast) {
+                    return `
+                <button disabled
+                   class="text-[11px] bg-gray-600/30 text-gray-500 px-3 py-2 rounded-lg border border-gray-600/30 font-mono cursor-not-allowed opacity-50"
+                   title="This screening has already started">
+                    ${time}
+                </button>`;
+                } else {
+                    return `
+                <a href="/booking/seance/${s.id}"
+                   class="text-[11px] bg-white/5 hover:bg-cinema-accent text-gray-300 hover:text-white transition px-3 py-2 rounded-lg border border-white/5 font-mono no-underline">
+                    ${time}
+                </a>`;
+                }
             }).join('');
 
             return `
-                <div class="group bg-cinema-dark rounded-2xl overflow-hidden border border-white/5 shadow-2xl transition hover:border-cinema-accent/30 animate-fade-in-up">
-                    <div class="relative h-[380px] overflow-hidden">
-                        <img src="${imageUrl}" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
-                        <div class="absolute inset-0 bg-gradient-to-t from-cinema-black via-transparent to-transparent opacity-60"></div>
-                        <div class="absolute top-4 left-4">
-                            <span class="bg-cinema-black/80 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1 rounded-full border border-white/10 uppercase tracking-widest">
-                                ${movie.genre}
-                            </span>
-                        </div>
-                    </div>
-                    <div class="p-6">
-                        <h3 class="text-lg font-bold text-white font-serif mb-2 group-hover:text-cinema-accent transition truncate" title="${movie.title}">
-                            ${movie.title}
-                        </h3>
-                        <div class="flex items-center gap-4 text-[10px] text-gray-500 mb-6 uppercase font-bold tracking-widest">
-                            <span><i class="fas fa-clock text-cinema-accent mr-1"></i> ${movie.durationMin} min</span>
-                        </div>
-                        <div class="flex flex-wrap gap-2">
-                            ${seancesHtml || '<span class="text-gray-600 italic text-xs">No sessions</span>'}
-                        </div>
-                    </div>
+        <div class="group bg-cinema-dark rounded-2xl overflow-hidden border border-white/5 shadow-2xl transition hover:border-cinema-accent/30 animate-fade-in-up">
+            <div class="relative h-[380px] overflow-hidden">
+                <img src="${imageUrl}" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
+                <div class="absolute inset-0 bg-gradient-to-t from-cinema-black via-transparent to-transparent opacity-60"></div>
+                <div class="absolute top-4 left-4">
+                    <span class="bg-cinema-black/80 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1 rounded-full border border-white/10 uppercase tracking-widest">
+                        ${movie.genre}
+                    </span>
                 </div>
-            `;
+            </div>
+            <div class="p-6">
+                <h3 class="text-lg font-bold text-white font-serif mb-2 group-hover:text-cinema-accent transition truncate" title="${movie.title}">
+                    ${movie.title}
+                </h3>
+                <div class="flex items-center gap-4 text-[10px] text-gray-500 mb-6 uppercase font-bold tracking-widest">
+                    <span><i class="fas fa-clock text-cinema-accent mr-1"></i> ${movie.durationMin} min</span>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    ${seancesHtml || '<span class="text-gray-600 italic text-xs">No sessions</span>'}
+                </div>
+            </div>
+        </div>
+        `;
         }
     </script>
 

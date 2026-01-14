@@ -65,6 +65,12 @@ public class ReservationService {
                     return new ResourceNotFoundException("Seance not found");
                 });
 
+        // Check if seance is in the past
+        if (seance.getStartTime().isBefore(LocalDateTime.now())) {
+            log.warn("Cannot create reservation for past seance ID: {}", seance.getId());
+            throw new InvalidReservationActionException("Cannot create reservation for past seance.");
+        }
+
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> {
                     log.warn("User with username {} not found", username);

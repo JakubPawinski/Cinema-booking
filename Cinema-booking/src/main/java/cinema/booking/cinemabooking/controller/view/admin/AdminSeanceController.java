@@ -1,6 +1,7 @@
 package cinema.booking.cinemabooking.controller.view.admin;
 
 import cinema.booking.cinemabooking.dto.request.SeanceRequestDto;
+import cinema.booking.cinemabooking.exception.SeanceConflictException;
 import cinema.booking.cinemabooking.repository.CinemaRoomRepository;
 import cinema.booking.cinemabooking.repository.MovieRepository;
 import cinema.booking.cinemabooking.service.SeanceService;
@@ -31,7 +32,6 @@ public class AdminSeanceController {
      */
     @GetMapping
     public String listSeances(Model model) {
-        //TODO: Add pagination
         model.addAttribute("seances", seanceService.getAllSeances());
         return "admin/seances-list";
     }
@@ -68,12 +68,12 @@ public class AdminSeanceController {
             redirectAttributes.addFlashAttribute("success", "Dodano nowy seans!");
 
             return "redirect:/admin/seances";
-        } catch (IllegalStateException e) {
+        } catch (SeanceConflictException | IllegalStateException e) {
             log.warn("Admin: Failed to create seance: {}", e.getMessage());
 
             // Add error message to display in the form
             model.addAttribute("error", e.getMessage());
-
+            model.addAttribute("seance", dto);
             model.addAttribute("movies", movieRepository.findAll());
             model.addAttribute("rooms", roomRepository.findAll());
             return "admin/seance-form";

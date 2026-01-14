@@ -1,6 +1,8 @@
 package cinema.booking.cinemabooking.controller.view;
 
 import cinema.booking.cinemabooking.exception.ResourceNotFoundException;
+import cinema.booking.cinemabooking.exception.SeanceConflictException;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
@@ -53,6 +55,33 @@ public class GlobalControllerAdvice {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return auth != null && auth.getAuthorities().stream()
                 .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+    }
+
+    /**
+     * Handles validation exceptions for view controllers.
+     */
+    @ExceptionHandler(ConstraintViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public String handleConstraintViolation(ConstraintViolationException ex, Model model) {
+        log.warn("View Validation Error: {}", ex.getMessage());
+        String errors = ex.getConstraintViolations().stream()
+                .map(violation -> violation.getPropertyPath() + ": " + violation.getMessage())
+                .reduce((e1, e2) -> e1 + ", " + e2)
+                .orElse("Validation error occurred");
+        model.addAttribute("errorMessage", errors);
+        model.addAttribute("errorCode", "400");
+        return "error/error-page";
+    }
+
+    /**
+     * Handles exceptions related to seance conflicts.
+     */
+    @ExceptionHandler({IllegalStateException.class, SeanceConflictException.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public String handleSeanceConflict(RuntimeException ex, Model model) {
+        log.warn("View Seance Conflict Error: {}", ex.getMessage());
+        model.addAttribute("error", ex.getMessage());
+        return "admin/seance-form";
     }
 
     /**
