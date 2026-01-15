@@ -80,8 +80,9 @@ class PdfTicketServiceTest {
         ByteArrayInputStream result = pdfTicketService.generateReservationPdf(reservation);
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result.available()).isGreaterThan(0);
+        assertThat(result)
+                .isNotNull()
+                .satisfies(stream -> assertThat(stream.available()).isGreaterThan(0));
     }
 
     @Test
@@ -93,8 +94,9 @@ class PdfTicketServiceTest {
         ByteArrayInputStream result = pdfTicketService.generateReservationPdf(reservation);
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result.available()).isGreaterThan(0);
+        assertThat(result)
+                .isNotNull()
+                .satisfies(stream -> assertThat(stream.available()).isGreaterThan(0));
     }
 
     @Test
@@ -120,8 +122,9 @@ class PdfTicketServiceTest {
         ByteArrayInputStream result = pdfTicketService.generateReservationPdf(reservation);
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result.available()).isGreaterThan(0);
+        assertThat(result)
+                .isNotNull()
+                .satisfies(stream -> assertThat(stream.available()).isGreaterThan(0));
     }
 
     @Test
@@ -134,8 +137,9 @@ class PdfTicketServiceTest {
         ByteArrayInputStream result = pdfTicketService.generateReservationPdf(reservation);
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result.available()).isGreaterThan(0);
+        assertThat(result)
+                .isNotNull()
+                .satisfies(stream -> assertThat(stream.available()).isGreaterThan(0));
     }
 
     @Test
@@ -148,8 +152,9 @@ class PdfTicketServiceTest {
         ByteArrayInputStream result = pdfTicketService.generateReservationPdf(reservation);
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result.available()).isGreaterThan(0);
+        assertThat(result)
+                .isNotNull()
+                .satisfies(stream -> assertThat(stream.available()).isGreaterThan(0));
     }
 
     @Test
@@ -161,8 +166,9 @@ class PdfTicketServiceTest {
         ByteArrayInputStream result = pdfTicketService.generateReservationPdf(reservation);
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result.available()).isGreaterThan(0);
+        assertThat(result)
+                .isNotNull()
+                .satisfies(stream -> assertThat(stream.available()).isGreaterThan(0));
     }
 
     @Test
@@ -175,8 +181,9 @@ class PdfTicketServiceTest {
         ByteArrayInputStream result = pdfTicketService.generateReservationPdf(reservation);
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result.available()).isGreaterThan(0);
+        assertThat(result)
+                .isNotNull()
+                .satisfies(stream -> assertThat(stream.available()).isGreaterThan(0));
     }
 
     @Test
@@ -188,8 +195,9 @@ class PdfTicketServiceTest {
         ByteArrayInputStream result = pdfTicketService.generateReservationPdf(reservation);
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result.available()).isGreaterThan(0);
+        assertThat(result)
+                .isNotNull()
+                .satisfies(stream -> assertThat(stream.available()).isGreaterThan(0));
     }
 
     @Test
@@ -201,8 +209,9 @@ class PdfTicketServiceTest {
         ByteArrayInputStream result = pdfTicketService.generateReservationPdf(reservation);
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result.available()).isGreaterThan(0);
+        assertThat(result)
+                .isNotNull()
+                .satisfies(stream -> assertThat(stream.available()).isGreaterThan(0));
     }
 
     @Test
@@ -225,8 +234,10 @@ class PdfTicketServiceTest {
         byte[] secondRead = result.readAllBytes();
 
         // Assert
-        assertThat(firstRead).isNotEmpty();
-        assertThat(secondRead).isNotEmpty();
+        assertThat(firstRead)
+                .isNotEmpty();
+        assertThat(secondRead)
+                .isNotEmpty();
     }
 
     @Test
@@ -266,7 +277,8 @@ class PdfTicketServiceTest {
         ByteArrayInputStream result = pdfTicketService.generateReservationPdf(reservation);
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result.available()).isGreaterThan(0);
+        assertThat(result)
+                .isNotNull()
+                .satisfies(stream -> assertThat(stream.available()).isGreaterThan(0));
     }
 }

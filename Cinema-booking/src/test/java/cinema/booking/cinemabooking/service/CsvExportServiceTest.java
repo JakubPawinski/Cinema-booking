@@ -44,11 +44,12 @@ class CsvExportServiceTest {
         ByteArrayInputStream result = csvExportService.generateDailySalesCsv(data);
 
         // Assert
-        assertThat(result).isNotNull();
         String content = readContent(result);
-        assertThat(content).contains("Date,Tickets Sold,Total Revenue");
-        assertThat(content).contains("2024-01-01,10,250.50");
-        assertThat(content).contains("2024-01-02,15,375.75");
+        assertThat(content)
+                .isNotNull()
+                .contains("Date,Tickets Sold,Total Revenue")
+                .contains("2024-01-01,10,250.50")
+                .contains("2024-01-02,15,375.75");
     }
 
     @Test
@@ -60,10 +61,12 @@ class CsvExportServiceTest {
         ByteArrayInputStream result = csvExportService.generateDailySalesCsv(data);
 
         // Assert
-        assertThat(result).isNotNull();
         String content = readContent(result);
-        assertThat(content).contains("Date,Tickets Sold,Total Revenue");
-        assertThat(content.trim().split("\n")).hasSize(1);
+        assertThat(content)
+                .isNotNull()
+                .contains("Date,Tickets Sold,Total Revenue");
+        assertThat(content.trim().split("\n"))
+                .hasSize(1);
     }
 
     @Test
@@ -77,9 +80,12 @@ class CsvExportServiceTest {
 
         // Assert
         byte[] bytes = result.readAllBytes();
-        assertThat(bytes[0]).isEqualTo((byte) 0xEF);
-        assertThat(bytes[1]).isEqualTo((byte) 0xBB);
-        assertThat(bytes[2]).isEqualTo((byte) 0xBF);
+        assertThat(bytes[0])
+                .isEqualTo((byte) 0xEF);
+        assertThat(bytes[1])
+                .isEqualTo((byte) 0xBB);
+        assertThat(bytes[2])
+                .isEqualTo((byte) 0xBF);
     }
 
     @Test
@@ -93,11 +99,12 @@ class CsvExportServiceTest {
         ByteArrayInputStream result = csvExportService.generateMovieSalesCsv(data);
 
         // Assert
-        assertThat(result).isNotNull();
         String content = readContent(result);
-        assertThat(content).contains("Movie Title,Tickets Sold,Total Revenue");
-        assertThat(content).contains("Inception,50,1250.00");
-        assertThat(content).contains("Avatar,75,1875.50");
+        assertThat(content)
+                .isNotNull()
+                .contains("Movie Title,Tickets Sold,Total Revenue")
+                .contains("Inception,50,1250.00")
+                .contains("Avatar,75,1875.50");
     }
 
     @Test
@@ -109,10 +116,12 @@ class CsvExportServiceTest {
         ByteArrayInputStream result = csvExportService.generateMovieSalesCsv(data);
 
         // Assert
-        assertThat(result).isNotNull();
         String content = readContent(result);
-        assertThat(content).contains("Movie Title,Tickets Sold,Total Revenue");
-        assertThat(content.trim().split("\n")).hasSize(1);
+        assertThat(content)
+                .isNotNull()
+                .contains("Movie Title,Tickets Sold,Total Revenue");
+        assertThat(content.trim().split("\n"))
+                .hasSize(1);
     }
 
     @Test
@@ -125,9 +134,10 @@ class CsvExportServiceTest {
         ByteArrayInputStream result = csvExportService.generateMovieSalesCsv(data);
 
         // Assert
-        assertThat(result).isNotNull();
         String content = readContent(result);
-        assertThat(content).contains("\"Movie with \"\"Quotes\"\" and Commas, Inc.\"");
+        assertThat(content)
+                .isNotNull()
+                .contains("\"Movie with \"\"Quotes\"\" and Commas, Inc.\"");
     }
 
     @Test
@@ -140,9 +150,10 @@ class CsvExportServiceTest {
         ByteArrayInputStream result = csvExportService.generateMovieSalesCsv(data);
 
         // Assert
-        assertThat(result).isNotNull();
         String content = readContent(result);
-        assertThat(content).contains("Movie With Newlines");
+        assertThat(content)
+                .isNotNull()
+                .contains("Movie With Newlines");
     }
 
     @Test
@@ -179,7 +190,6 @@ class CsvExportServiceTest {
         }
     }
 
-
     @Test
     void testGenerateDailySalesCsvWithLargeDataset() throws IOException {
         // Arrange
@@ -196,10 +206,11 @@ class CsvExportServiceTest {
         ByteArrayInputStream result = csvExportService.generateDailySalesCsv(data);
 
         // Assert
-        assertThat(result).isNotNull();
         String content = readContent(result);
         String[] lines = content.trim().split("\n");
-        assertThat(lines).hasSize(1001);
+        assertThat(lines)
+                .isNotNull()
+                .hasSize(1001);
     }
 
     @Test
@@ -212,9 +223,10 @@ class CsvExportServiceTest {
         ByteArrayInputStream result = csvExportService.generateMovieSalesCsv(data);
 
         // Assert
-        assertThat(result).isNotNull();
         String content = readContent(result);
-        assertThat(content).contains("Free Screening,30,0.00");
+        assertThat(content)
+                .isNotNull()
+                .contains("Free Screening,30,0.00");
     }
 
     @Test
@@ -227,9 +239,10 @@ class CsvExportServiceTest {
         ByteArrayInputStream result = csvExportService.generateDailySalesCsv(data);
 
         // Assert
-        assertThat(result).isNotNull();
         String content = readContent(result);
-        assertThat(content).contains("2024-01-01,7,123.46");
+        assertThat(content)
+                .isNotNull()
+                .contains("2024-01-01,7,123.46");
     }
 
     private String readContent(ByteArrayInputStream stream) throws IOException {

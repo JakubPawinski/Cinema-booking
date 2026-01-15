@@ -454,11 +454,17 @@ class ReservationServiceTest {
         ReservationSummaryDto result = reservationService.updateTicketType(1L, 1L, TicketType.REDUCED);
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(ticket.getTicketType()).isEqualTo(TicketType.REDUCED);
-        assertThat(ticket.getPrice()).isEqualTo(10.0);
+        assertThat(result)
+                .isNotNull()
+                .isEqualTo(summaryDto);
+        assertThat(ticket)
+                .satisfies(t -> {
+                    assertThat(t.getTicketType()).isEqualTo(TicketType.REDUCED);
+                    assertThat(t.getPrice()).isEqualTo(10.0);
+                });
         verify(ticketRepository, times(1)).save(any(Ticket.class));
     }
+
 
 
     @Test

@@ -54,12 +54,16 @@ class ReportServiceTest {
         List<SalesReportDto> result = reportService.getSalesReport();
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result).isNotEmpty();
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getMovieTitle()).isEqualTo("Inception");
-        assertThat(result.get(0).getTotalRevenue()).isEqualTo(2000.00);
-        assertThat(result.get(0).getTicketsSold()).isEqualTo(500);
+        assertThat(result)
+                .isNotNull()
+                .isNotEmpty()
+                .hasSize(1)
+                .first()
+                .satisfies(report -> {
+                    assertThat(report.getMovieTitle()).isEqualTo("Inception");
+                    assertThat(report.getTotalRevenue()).isEqualTo(2000.00);
+                    assertThat(report.getTicketsSold()).isEqualTo(500);
+                });
         verify(salesDao, times(1)).fetchSalesReport();
     }
 
@@ -72,8 +76,9 @@ class ReportServiceTest {
         List<SalesReportDto> result = reportService.getSalesReport();
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result).isEmpty();
+        assertThat(result)
+                .isNotNull()
+                .isEmpty();
         verify(salesDao, times(1)).fetchSalesReport();
     }
 
@@ -92,9 +97,10 @@ class ReportServiceTest {
         List<SalesReportDto> result = reportService.getSalesReport();
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result).hasSize(2);
-        assertThat(result).containsExactly(salesReportDto, secondReport);
+        assertThat(result)
+                .isNotNull()
+                .hasSize(2)
+                .containsExactly(salesReportDto, secondReport);
         verify(salesDao, times(1)).fetchSalesReport();
     }
 
@@ -108,12 +114,16 @@ class ReportServiceTest {
         List<DailySalesDto> result = reportService.getDailySalesReport();
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result).isNotEmpty();
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getDate()).isEqualTo(LocalDate.of(2024, 1, 15));
-        assertThat(result.get(0).getTotalRevenue()).isEqualTo(1500.00);
-        assertThat(result.get(0).getTicketsSold()).isEqualTo(150L);
+        assertThat(result)
+                .isNotNull()
+                .isNotEmpty()
+                .hasSize(1)
+                .first()
+                .satisfies(daily -> {
+                    assertThat(daily.getDate()).isEqualTo(LocalDate.of(2024, 1, 15));
+                    assertThat(daily.getTotalRevenue()).isEqualTo(1500.00);
+                    assertThat(daily.getTicketsSold()).isEqualTo(150L);
+                });
         verify(salesDao, times(1)).fetchDailySales();
     }
 
@@ -126,8 +136,9 @@ class ReportServiceTest {
         List<DailySalesDto> result = reportService.getDailySalesReport();
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result).isEmpty();
+        assertThat(result)
+                .isNotNull()
+                .isEmpty();
         verify(salesDao, times(1)).fetchDailySales();
     }
 
@@ -146,9 +157,10 @@ class ReportServiceTest {
         List<DailySalesDto> result = reportService.getDailySalesReport();
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result).hasSize(2);
-        assertThat(result).containsExactly(dailySalesDto, secondDailySales);
+        assertThat(result)
+                .isNotNull()
+                .hasSize(2)
+                .containsExactly(dailySalesDto, secondDailySales);
         verify(salesDao, times(1)).fetchDailySales();
     }
 }

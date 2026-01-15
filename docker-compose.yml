@@ -12,6 +12,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://cinema-booking-db:5432/cinema_booking
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: password
+      TZ: Europe/Warsaw
     depends_on:
       - postgres
     volumes:

@@ -42,10 +42,11 @@ class FileStorageServiceTest {
         String result = fileStorageService.storeFile(file, "Inception");
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result).startsWith("/uploads/");
-        assertThat(result).contains("Inception");
-        assertThat(result).endsWith(".jpg");
+        assertThat(result)
+                .isNotNull()
+                .startsWith("/uploads/")
+                .contains("Inception")
+                .endsWith(".jpg");
     }
 
     @Test
@@ -62,9 +63,10 @@ class FileStorageServiceTest {
         String result = fileStorageService.storeFile(file, "Avatar");
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result).startsWith("/uploads/");
-        assertThat(result).endsWith(".png");
+        assertThat(result)
+                .isNotNull()
+                .startsWith("/uploads/")
+                .endsWith(".png");
     }
 
     @Test
@@ -81,8 +83,9 @@ class FileStorageServiceTest {
         String result = fileStorageService.storeFile(file, "Dune");
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result).endsWith(".webp");
+        assertThat(result)
+                .isNotNull()
+                .endsWith(".webp");
     }
 
     @Test
@@ -131,8 +134,9 @@ class FileStorageServiceTest {
         String result = fileStorageService.storeFile(file, "Inception");
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result).startsWith("/uploads/");
+        assertThat(result)
+                .isNotNull()
+                .startsWith("/uploads/");
     }
 
     @Test
@@ -150,9 +154,10 @@ class FileStorageServiceTest {
         String result = fileStorageService.storeFile(file, longTitle);
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result).startsWith("/uploads/");
-        assertThat(result).doesNotContain(" ");
+        assertThat(result)
+                .isNotNull()
+                .startsWith("/uploads/")
+                .doesNotContain(" ");
     }
 
     @Test
@@ -170,9 +175,10 @@ class FileStorageServiceTest {
         String result = fileStorageService.storeFile(file, titleWithSpecialChars);
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result).startsWith("/uploads/");
-        assertThat(result).doesNotContain("!@#$%^&*()");
+        assertThat(result)
+                .isNotNull()
+                .startsWith("/uploads/")
+                .doesNotContain("!@#$%^&*()");
     }
 
     @Test
@@ -205,9 +211,10 @@ class FileStorageServiceTest {
         String result = fileStorageService.storeFile(file, "");
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result).startsWith("/uploads/");
-        assertThat(result).contains("movie");
+        assertThat(result)
+                .isNotNull()
+                .startsWith("/uploads/")
+                .contains("movie");
     }
 
     @Test
@@ -231,9 +238,12 @@ class FileStorageServiceTest {
         String result2 = fileStorageService.storeFile(file2, "Avatar");
 
         // Assert
-        assertThat(result1).isNotEqualTo(result2);
-        assertThat(result1).contains("Inception");
-        assertThat(result2).contains("Avatar");
+        assertThat(result1)
+                .isNotEqualTo(result2);
+        assertThat(result1)
+                .contains("Inception");
+        assertThat(result2)
+                .contains("Avatar");
     }
 
     @Test
@@ -253,25 +263,29 @@ class FileStorageServiceTest {
         // Assert
         String filename = fileUrl.replace("/uploads/", "");
         Path filePath = uploadDir.resolve(filename);
-        assertThat(Files.exists(filePath)).isFalse();
+        assertThat(Files.exists(filePath))
+                .isFalse();
     }
 
     @Test
     void testDeleteFileWithNullUrl() {
         // Act & Assert - should not throw exception
-        assertThatNoException().isThrownBy(() -> fileStorageService.deleteFile(null));
+        assertThatNoException()
+                .isThrownBy(() -> fileStorageService.deleteFile(null));
     }
 
     @Test
     void testDeleteFileWithEmptyUrl() {
         // Act & Assert - should not throw exception
-        assertThatNoException().isThrownBy(() -> fileStorageService.deleteFile(""));
+        assertThatNoException()
+                .isThrownBy(() -> fileStorageService.deleteFile(""));
     }
 
     @Test
     void testDeleteNonExistentFile() {
         // Act & Assert - should not throw exception
-        assertThatNoException().isThrownBy(() -> fileStorageService.deleteFile("/uploads/nonexistent.jpg"));
+        assertThatNoException()
+                .isThrownBy(() -> fileStorageService.deleteFile("/uploads/nonexistent.jpg"));
     }
 
     @Test
@@ -290,8 +304,10 @@ class FileStorageServiceTest {
         // Assert
         String filename = fileUrl.replace("/uploads/", "");
         Path filePath = uploadDir.resolve(filename);
-        assertThat(Files.exists(filePath)).isTrue();
-        assertThat(Files.size(filePath)).isGreaterThan(0);
+        assertThat(Files.exists(filePath))
+                .isTrue();
+        assertThat(Files.size(filePath))
+                .isGreaterThan(0);
     }
 
     @Test
@@ -315,8 +331,10 @@ class FileStorageServiceTest {
         String pngResult = fileStorageService.storeFile(pngFile, "Movie2");
 
         // Assert
-        assertThat(jpegResult).endsWith(".jpg");
-        assertThat(pngResult).endsWith(".png");
+        assertThat(jpegResult)
+                .endsWith(".jpg");
+        assertThat(pngResult)
+                .endsWith(".png");
     }
 
     @Test
@@ -340,7 +358,8 @@ class FileStorageServiceTest {
         String result2 = fileStorageService.storeFile(file2, "SameMovie");
 
         // Assert
-        assertThat(result1).isNotEqualTo(result2);
+        assertThat(result1)
+                .isNotEqualTo(result2);
     }
 
     @Test
@@ -365,10 +384,12 @@ class FileStorageServiceTest {
         String newFileUrl = fileStorageService.storeFile(newFile, "Inception");
 
         // Assert
-        assertThat(newFileUrl).isNotNull();
+        assertThat(newFileUrl)
+                .isNotNull();
         String newFilename = newFileUrl.replace("/uploads/", "");
         Path newFilePath = uploadDir.resolve(newFilename);
-        assertThat(Files.exists(newFilePath)).isTrue();
+        assertThat(Files.exists(newFilePath))
+                .isTrue();
     }
 
     @Test
@@ -385,8 +406,9 @@ class FileStorageServiceTest {
         String result = fileStorageService.storeFile(file, "Movie");
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result).endsWith(".jpeg");
+        assertThat(result)
+                .isNotNull()
+                .endsWith(".jpeg");
     }
 
     @Test
@@ -436,7 +458,8 @@ class FileStorageServiceTest {
                 java.nio.file.attribute.PosixFilePermissions.fromString("r-xr-xr-x"));
 
         // Act & Assert - should not throw exception, only log error
-        assertThatNoException().isThrownBy(() -> fileStorageService.deleteFile(fileUrl));
+        assertThatNoException()
+                .isThrownBy(() -> fileStorageService.deleteFile(fileUrl));
 
         // Cleanup
         Files.setAttribute(uploadDir, "posix:permissions",

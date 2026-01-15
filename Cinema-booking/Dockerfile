@@ -11,11 +11,12 @@ COPY src ./src
 
 RUN mvn clean package -DskipTests
 
-FROM eclipse-temurin:21-jre-jammy
+FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
 
 COPY --from=builder /app/target/*.jar app.jar
+RUN apk add --no-cache tzdata
 
 EXPOSE 8080
 

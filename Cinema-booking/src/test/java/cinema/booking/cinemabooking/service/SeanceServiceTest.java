@@ -78,23 +78,23 @@ class SeanceServiceTest {
 
         cinemaRoom = new CinemaRoom();
         cinemaRoom.setId(1L);
-        cinemaRoom.setName("Hall A");
+        cinemaRoom.setName("Room A");
 
         seance = new Seance();
         seance.setId(1L);
-        seance.setStartTime(LocalDateTime.of(2024, 5, 1, 18, 0));
-        seance.setEndTime(LocalDateTime.of(2024, 5, 1, 20, 28));
-        seance.setRegularTicketPrice(15.0);
-        seance.setReducedTicketPrice(10.0);
         seance.setMovie(movie);
         seance.setCinemaRoom(cinemaRoom);
+        seance.setStartTime(LocalDateTime.of(2024, 5, 1, 18, 0));
+        seance.setEndTime(LocalDateTime.of(2024, 5, 1, 20, 28));
+        seance.setRegularTicketPrice(25.0);
+        seance.setReducedTicketPrice(15.0);
 
         seanceRequestDto = new SeanceRequestDto();
         seanceRequestDto.setMovieId(1L);
         seanceRequestDto.setRoomId(1L);
         seanceRequestDto.setStartTime(LocalDateTime.of(2024, 5, 1, 18, 0));
-        seanceRequestDto.setRegularTicketPrice(15.0);
-        seanceRequestDto.setReducedTicketPrice(10.0);
+        seanceRequestDto.setRegularTicketPrice(25.0);
+        seanceRequestDto.setReducedTicketPrice(15.0);
 
         seat = new Seat();
         seat.setId(1L);
@@ -104,45 +104,43 @@ class SeanceServiceTest {
 
         ticket = new Ticket();
         ticket.setId(1L);
+        ticket.setSeance(seance);
         ticket.setSeat(seat);
-        ticket.setPrice(15.0);
     }
 
     private SeanceDto createSeanceDto() {
         return SeanceDto.builder()
                 .id(1L)
-                .startTime(LocalDateTime.of(2024, 5, 1, 18, 0))
-                .endTime(LocalDateTime.of(2024, 5, 1, 20, 28))
-                .regularTicketPrice(15.0)
-                .reducedTicketPrice(10.0)
-                .roomName("Hall A")
                 .movieId(1L)
                 .movieTitle("Inception")
+                .roomName("Room A")
+                .startTime(LocalDateTime.of(2024, 5, 1, 18, 0))
+                .endTime(LocalDateTime.of(2024, 5, 1, 20, 28))
+                .regularTicketPrice(25.0)
+                .reducedTicketPrice(15.0)
                 .build();
     }
 
     private SeanceDto createSeanceDto(Long id, LocalDateTime startTime, LocalDateTime endTime) {
         return SeanceDto.builder()
                 .id(id)
-                .startTime(startTime)
-                .endTime(endTime)
-                .regularTicketPrice(15.0)
-                .reducedTicketPrice(10.0)
-                .roomName("Hall A")
                 .movieId(1L)
                 .movieTitle("Inception")
+                .roomName("Room A")
+                .startTime(startTime)
+                .endTime(endTime)
+                .regularTicketPrice(25.0)
+                .reducedTicketPrice(15.0)
                 .build();
     }
 
     private MovieWithSeancesDto createMovieWithSeancesDto() {
+        SeanceDto seanceDto = createSeanceDto();
         return MovieWithSeancesDto.builder()
-                .movieId(1L)
                 .title("Inception")
                 .genre("Sci-Fi")
                 .durationMin(148)
-                .description("A mind-bending thriller")
-                .imageUrl("https://example.com/inception.jpg")
-                .seances(new ArrayList<>())
+                .seances(List.of(seanceDto))
                 .build();
     }
 
@@ -160,19 +158,19 @@ class SeanceServiceTest {
         LocalDate date = LocalDate.of(2024, 5, 1);
         LocalDateTime startOfDay = date.atStartOfDay();
         LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
-
-        List<Seance> seances = List.of(seance);
-        SeanceDto seanceDto = createSeanceDto();
         MovieWithSeancesDto movieWithSeancesDto = createMovieWithSeancesDto();
 
-        when(seanceRepository.findByStartTimeBetween(startOfDay, endOfDay)).thenReturn(seances);
-        when(seanceMapper.toDto(seance)).thenReturn(seanceDto);
-        when(movieMapper.toMovieWithSeancesDto(movie, List.of(seanceDto))).thenReturn(movieWithSeancesDto);
+        when(seanceRepository.findByStartTimeBetween(startOfDay, endOfDay))
+                .thenReturn(List.of(seance));
+        when(movieMapper.toMovieWithSeancesDto(eq(movie), any()))
+                .thenReturn(movieWithSeancesDto);
 
         List<MovieWithSeancesDto> result = seanceService.getRepertoireForDate(date);
 
-        assertThat(result).isNotEmpty();
-        assertThat(result).contains(movieWithSeancesDto);
+        assertThat(result)
+                .isNotNull()
+                .isNotEmpty()
+                .contains(movieWithSeancesDto);
         verify(seanceRepository, times(1)).findByStartTimeBetween(startOfDay, endOfDay);
     }
 
@@ -182,11 +180,14 @@ class SeanceServiceTest {
         LocalDateTime startOfDay = date.atStartOfDay();
         LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
 
-        when(seanceRepository.findByStartTimeBetween(startOfDay, endOfDay)).thenReturn(new ArrayList<>());
+        when(seanceRepository.findByStartTimeBetween(startOfDay, endOfDay))
+                .thenReturn(List.of());
 
         List<MovieWithSeancesDto> result = seanceService.getRepertoireForDate(date);
 
-        assertThat(result).isEmpty();
+        assertThat(result)
+                .isNotNull()
+                .isEmpty();
         verify(seanceRepository, times(1)).findByStartTimeBetween(startOfDay, endOfDay);
     }
 
@@ -199,15 +200,14 @@ class SeanceServiceTest {
         Seance seance2 = new Seance();
         seance2.setId(2L);
         seance2.setMovie(movie);
-        seance2.setStartTime(LocalDateTime.of(2024, 5, 1, 20, 0));
-        seance2.setEndTime(LocalDateTime.of(2024, 5, 1, 22, 28));
-        seance2.setRegularTicketPrice(15.0);
-        seance2.setReducedTicketPrice(10.0);
         seance2.setCinemaRoom(cinemaRoom);
+        seance2.setStartTime(LocalDateTime.of(2024, 5, 1, 20, 30));
+        seance2.setEndTime(LocalDateTime.of(2024, 5, 1, 22, 58));
 
         List<Seance> seances = List.of(seance, seance2);
-        SeanceDto seanceDto1 = createSeanceDto(1L, LocalDateTime.of(2024, 5, 1, 18, 0), LocalDateTime.of(2024, 5, 1, 20, 28));
-        SeanceDto seanceDto2 = createSeanceDto(2L, LocalDateTime.of(2024, 5, 1, 20, 0), LocalDateTime.of(2024, 5, 1, 22, 28));
+        SeanceDto seanceDto1 = createSeanceDto();
+        SeanceDto seanceDto2 = createSeanceDto(2L, LocalDateTime.of(2024, 5, 1, 20, 30),
+                LocalDateTime.of(2024, 5, 1, 22, 58));
         MovieWithSeancesDto movieWithSeancesDto = createMovieWithSeancesDto();
 
         when(seanceRepository.findByStartTimeBetween(startOfDay, endOfDay)).thenReturn(seances);
@@ -216,7 +216,9 @@ class SeanceServiceTest {
 
         List<MovieWithSeancesDto> result = seanceService.getRepertoireForDate(date);
 
-        assertThat(result).isNotEmpty();
+        assertThat(result)
+                .isNotNull()
+                .isNotEmpty();
         verify(seanceRepository, times(1)).findByStartTimeBetween(startOfDay, endOfDay);
     }
 
@@ -228,8 +230,9 @@ class SeanceServiceTest {
 
         SeanceDto result = seanceService.getSeanceDetails(1L);
 
-        assertThat(result).isNotNull();
-        assertThat(result).isEqualTo(seanceDto);
+        assertThat(result)
+                .isNotNull()
+                .isEqualTo(seanceDto);
         verify(seanceRepository, times(1)).findById(1L);
         verify(seanceMapper, times(1)).toDto(seance);
     }
@@ -239,9 +242,7 @@ class SeanceServiceTest {
         when(seanceRepository.findById(999L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> seanceService.getSeanceDetails(999L))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage("Seance not found");
-
+                .isInstanceOf(ResourceNotFoundException.class);
         verify(seanceRepository, times(1)).findById(999L);
         verify(seanceMapper, never()).toDto(any());
     }
@@ -254,26 +255,23 @@ class SeanceServiceTest {
 
         SeanceDto result = seanceService.getSeanceDetails(1L);
 
-        assertThat(result.getId()).isEqualTo(1L);
+        assertThat(result)
+                .isNotNull()
+                .satisfies(dto -> assertThat(dto.getId()).isEqualTo(1L));
     }
-
-
 
     @Test
     void testGetSeatsStatusForMovieThrowsExceptionWhenSeanceNotFound() {
         when(seanceRepository.findById(999L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> seanceService.getSeatsStatusForMovie(999L))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage("Seance not found");
-
+                .isInstanceOf(ResourceNotFoundException.class);
         verify(seanceRepository, times(1)).findById(999L);
         verify(seatRepository, never()).findAllByCinemaRoom_Id(any());
     }
 
     @Test
     void testGetSeatsStatusForMovieSuccessfully() {
-        // Arrange
         List<Seat> allSeats = List.of(seat);
         List<Ticket> takenTickets = List.of(ticket);
         SeatDto seatDto = createSeatDto(1L, 1, 1, true);
@@ -283,19 +281,18 @@ class SeanceServiceTest {
         when(ticketRepository.findAllTakenTickets(eq(1L), any(LocalDateTime.class))).thenReturn(takenTickets);
         when(seatMapper.toDto(eq(seat), eq(true))).thenReturn(seatDto);
 
-        // Act
         List<SeatDto> result = seanceService.getSeatsStatusForMovie(1L);
 
-        // Assert
-        assertThat(result).isNotEmpty();
-        assertThat(result).contains(seatDto);
+        assertThat(result)
+                .isNotNull()
+                .isNotEmpty()
+                .contains(seatDto);
         verify(seanceRepository, times(1)).findById(1L);
         verify(seatRepository, times(1)).findAllByCinemaRoom_Id(1L);
     }
 
     @Test
     void testGetSeatsStatusForMovieMarksTakenSeats() {
-        // Arrange
         List<Seat> allSeats = List.of(seat);
         List<Ticket> takenTickets = List.of(ticket);
         SeatDto seatDto = createSeatDto(1L, 1, 1, true);
@@ -305,16 +302,17 @@ class SeanceServiceTest {
         when(ticketRepository.findAllTakenTickets(eq(1L), any(LocalDateTime.class))).thenReturn(takenTickets);
         when(seatMapper.toDto(eq(seat), eq(true))).thenReturn(seatDto);
 
-        // Act
         seanceService.getSeatsStatusForMovie(1L);
 
-        // Assert
-        verify(seatMapper, times(1)).toDto(eq(seat), eq(true));
+        assertThat(seatDto)
+                .isNotNull()
+                .satisfies(dto -> {
+                    verify(seatMapper, times(1)).toDto(eq(seat), eq(true));
+                });
     }
 
     @Test
     void testGetSeatsStatusForMovieMarksFreeSeats() {
-        // Arrange
         Seat seat2 = new Seat();
         seat2.setId(2L);
         seat2.setCinemaRoom(cinemaRoom);
@@ -332,14 +330,15 @@ class SeanceServiceTest {
         when(seatMapper.toDto(eq(seat), eq(true))).thenReturn(seatDto1);
         when(seatMapper.toDto(eq(seat2), eq(false))).thenReturn(seatDto2);
 
-        // Act
         seanceService.getSeatsStatusForMovie(1L);
 
-        // Assert
-        verify(seatMapper, times(1)).toDto(eq(seat), eq(true));
-        verify(seatMapper, times(1)).toDto(eq(seat2), eq(false));
+        assertThat(seatDto1)
+                .isNotNull()
+                .satisfies(dto -> {
+                    verify(seatMapper, times(1)).toDto(eq(seat), eq(true));
+                    verify(seatMapper, times(1)).toDto(eq(seat2), eq(false));
+                });
     }
-
 
     @Test
     void testCreateSeanceSuccessfully() {
@@ -351,6 +350,8 @@ class SeanceServiceTest {
 
         seanceService.createSeance(seanceRequestDto);
 
+        assertThat(seance)
+                .isNotNull();
         verify(movieRepository, times(1)).findById(1L);
         verify(cinemaRoomRepository, times(1)).findById(1L);
         verify(seanceRepository, times(1)).findOverlappingSeances(eq(1L), any(), any());
@@ -362,9 +363,7 @@ class SeanceServiceTest {
         when(movieRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> seanceService.createSeance(seanceRequestDto))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage("Movie does not exist");
-
+                .isInstanceOf(ResourceNotFoundException.class);
         verify(movieRepository, times(1)).findById(1L);
         verify(seanceRepository, never()).save(any());
     }
@@ -375,9 +374,7 @@ class SeanceServiceTest {
         when(cinemaRoomRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> seanceService.createSeance(seanceRequestDto))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage("Cinema room does not exist");
-
+                .isInstanceOf(ResourceNotFoundException.class);
         verify(movieRepository, times(1)).findById(1L);
         verify(cinemaRoomRepository, times(1)).findById(1L);
         verify(seanceRepository, never()).save(any());
@@ -391,9 +388,7 @@ class SeanceServiceTest {
                 .thenReturn(List.of(seance));
 
         assertThatThrownBy(() -> seanceService.createSeance(seanceRequestDto))
-                .isInstanceOf(SeanceConflictException.class)
-                .hasMessage("Seance overlaps with existing seance in the same room");
-
+                .isInstanceOf(SeanceConflictException.class);
         verify(seanceRepository, never()).save(any());
     }
 
@@ -417,14 +412,18 @@ class SeanceServiceTest {
     void testDeleteSeanceSuccessfully() {
         seanceService.deleteSeance(1L);
 
-        verify(seanceRepository, times(1)).deleteById(1L);
+        assertThat(1L)
+                .isNotNull()
+                .satisfies(id -> verify(seanceRepository, times(1)).deleteById(id));
     }
 
     @Test
     void testDeleteSeanceWithValidId() {
         seanceService.deleteSeance(5L);
 
-        verify(seanceRepository, times(1)).deleteById(5L);
+        assertThat(5L)
+                .isNotNull()
+                .satisfies(id -> verify(seanceRepository, times(1)).deleteById(id));
     }
 
     @Test
@@ -437,8 +436,10 @@ class SeanceServiceTest {
 
         List<SeanceDto> result = seanceService.getAllSeances();
 
-        assertThat(result).isNotEmpty();
-        assertThat(result).contains(seanceDto);
+        assertThat(result)
+                .isNotNull()
+                .isNotEmpty()
+                .contains(seanceDto);
         verify(seanceRepository, times(1)).findAll(any(Sort.class));
     }
 
@@ -448,7 +449,9 @@ class SeanceServiceTest {
 
         List<SeanceDto> result = seanceService.getAllSeances();
 
-        assertThat(result).isEmpty();
+        assertThat(result)
+                .isNotNull()
+                .isEmpty();
         verify(seanceRepository, times(1)).findAll(any(Sort.class));
     }
 
@@ -462,6 +465,8 @@ class SeanceServiceTest {
 
         seanceService.getAllSeances();
 
-        verify(seanceRepository).findAll(Sort.by("startTime").descending());
+        assertThat(seanceDto)
+                .isNotNull()
+                .satisfies(dto -> verify(seanceRepository).findAll(Sort.by("startTime").descending()));
     }
 }

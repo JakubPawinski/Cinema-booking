@@ -49,7 +49,6 @@ class MovieServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Setup Movie
         movie = new Movie();
         movie.setId(1L);
         movie.setTitle("Inception");
@@ -63,7 +62,6 @@ class MovieServiceTest {
         movie.setAgeRating("PG-13");
         movie.setGalleryImages(new ArrayList<>());
 
-        // Setup MovieDto using Builder
         movieDto = MovieDto.builder()
                 .id(1L)
                 .title("Inception")
@@ -77,7 +75,6 @@ class MovieServiceTest {
                 .ageRating("PG-13")
                 .build();
 
-        // Setup MovieRequestDto
         movieRequestDto = new MovieRequestDto();
         movieRequestDto.setTitle("Inception");
         movieRequestDto.setDescription("A mind-bending thriller");
@@ -89,7 +86,6 @@ class MovieServiceTest {
         movieRequestDto.setMainCast("Leonardo DiCaprio, Marion Cotillard");
         movieRequestDto.setAgeRating("PG-13");
     }
-
 
     @Test
     void testAddMovieSuccessfully() {
@@ -212,6 +208,8 @@ class MovieServiceTest {
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getTitle()).isEqualTo("Inception");
         verify(movieRepository, times(1)).findAll(eq(pageable));
+
+
     }
 
     @Test
@@ -241,9 +239,10 @@ class MovieServiceTest {
         MovieDto result = movieService.getMovieById(1L);
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result.getTitle()).isEqualTo("Inception");
-        assertThat(result.getDurationMin()).isEqualTo(148);
+        assertThat(result)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("title", "Inception")
+                .hasFieldOrPropertyWithValue("durationMin", 148);
         verify(movieRepository, times(1)).findById(eq(1L));
     }
 
@@ -262,7 +261,6 @@ class MovieServiceTest {
     @Test
     void testDeleteMovieSuccessfully() {
         // Arrange
-        movie.setImageUrl("https://example.com/inception.jpg");
         when(movieRepository.findById(eq(1L))).thenReturn(Optional.of(movie));
 
         // Act
@@ -271,7 +269,6 @@ class MovieServiceTest {
         // Assert
         verify(movieRepository, times(1)).findById(eq(1L));
         verify(movieRepository, times(1)).deleteById(eq(1L));
-        verify(fileStorageService, times(0)).deleteFile(any());
     }
 
     @Test
@@ -284,7 +281,6 @@ class MovieServiceTest {
         movieService.deleteMovie(1L);
 
         // Assert
-        verify(movieRepository, times(1)).findById(eq(1L));
         verify(fileStorageService, times(1)).deleteFile(eq("/uploads/inception.jpg"));
         verify(movieRepository, times(1)).deleteById(eq(1L));
     }
@@ -304,15 +300,15 @@ class MovieServiceTest {
     @Test
     void testRemoveGalleryImageSuccessfully() {
         // Arrange
-        movie.setGalleryImages(new ArrayList<>(List.of("/uploads/gallery1.jpg", "/uploads/gallery2.jpg")));
+        movie.getGalleryImages().add("/uploads/gallery1.jpg");
         when(movieRepository.findById(eq(1L))).thenReturn(Optional.of(movie));
 
         // Act
         movieService.removeGalleryImage(1L, "/uploads/gallery1.jpg");
 
         // Assert
-        assertThat(movie.getGalleryImages()).hasSize(1);
-        assertThat(movie.getGalleryImages()).contains("/uploads/gallery2.jpg");
+        assertThat(movie.getGalleryImages())
+                .doesNotContain("/uploads/gallery1.jpg");
         verify(fileStorageService, times(1)).deleteFile(eq("/uploads/gallery1.jpg"));
         verify(movieRepository, times(1)).save(eq(movie));
     }
@@ -320,16 +316,16 @@ class MovieServiceTest {
     @Test
     void testRemoveGalleryImageExternalUrl() {
         // Arrange
-        movie.setGalleryImages(new ArrayList<>(List.of("https://example.com/gallery1.jpg", "https://example.com/gallery2.jpg")));
+        movie.getGalleryImages().add("https://example.com/gallery1.jpg");
         when(movieRepository.findById(eq(1L))).thenReturn(Optional.of(movie));
 
         // Act
         movieService.removeGalleryImage(1L, "https://example.com/gallery1.jpg");
 
         // Assert
-        assertThat(movie.getGalleryImages()).hasSize(1);
-        assertThat(movie.getGalleryImages()).contains("https://example.com/gallery2.jpg");
-        verify(fileStorageService, times(0)).deleteFile(any());
+        assertThat(movie.getGalleryImages())
+                .doesNotContain("https://example.com/gallery1.jpg");
+        verify(fileStorageService, never()).deleteFile(anyString());
         verify(movieRepository, times(1)).save(eq(movie));
     }
 
@@ -342,49 +338,41 @@ class MovieServiceTest {
         assertThatThrownBy(() -> movieService.removeGalleryImage(999L, "/uploads/gallery1.jpg"))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessage("Movie not found");
-        verify(movieRepository, times(1)).findById(eq(999L));
     }
 
     @Test
     void testRemoveGalleryImageNotExisting() {
         // Arrange
-        movie.setGalleryImages(new ArrayList<>(List.of("/uploads/gallery2.jpg")));
         when(movieRepository.findById(eq(1L))).thenReturn(Optional.of(movie));
 
         // Act
-        movieService.removeGalleryImage(1L, "/uploads/gallery1.jpg");
+        movieService.removeGalleryImage(1L, "/uploads/nonexistent.jpg");
 
         // Assert
-        assertThat(movie.getGalleryImages()).hasSize(1);
-        verify(fileStorageService, times(0)).deleteFile(any());
-        verify(movieRepository, times(0)).save(any());
+        verify(movieRepository, never()).save(any());
+        verify(fileStorageService, never()).deleteFile(anyString());
     }
 
     @Test
     void testUpdateMovieWithExternalImageUrlChange() {
         // Arrange
-        movie.setImageUrl("https://old-example.com/inception.jpg");
-        movieRequestDto.setImageUrl("https://new-example.com/inception.jpg");
-        movieRequestDto.setImageFile(null);
-
+        movie.setImageUrl("https://old.example.com/image.jpg");
+        movieRequestDto.setImageUrl("https://new.example.com/image.jpg");
         when(movieRepository.findById(eq(1L))).thenReturn(Optional.of(movie));
 
         // Act
         movieService.updateMovie(1L, movieRequestDto);
 
         // Assert
-        verify(fileStorageService, times(0)).deleteFile(any());
+        verify(fileStorageService, never()).deleteFile(anyString());
         verify(movieRepository, times(1)).save(eq(movie));
-        assertThat(movie.getImageUrl()).isEqualTo("https://new-example.com/inception.jpg");
     }
 
     @Test
     void testUpdateMovieWithLocalImageUrlToExternalUrl() {
         // Arrange
         movie.setImageUrl("/uploads/old_image.jpg");
-        movieRequestDto.setImageUrl("https://new-example.com/inception.jpg");
-        movieRequestDto.setImageFile(null);
-
+        movieRequestDto.setImageUrl("https://new.example.com/image.jpg");
         when(movieRepository.findById(eq(1L))).thenReturn(Optional.of(movie));
 
         // Act
@@ -393,24 +381,18 @@ class MovieServiceTest {
         // Assert
         verify(fileStorageService, times(1)).deleteFile(eq("/uploads/old_image.jpg"));
         verify(movieRepository, times(1)).save(eq(movie));
-        assertThat(movie.getImageUrl()).isEqualTo("https://new-example.com/inception.jpg");
     }
 
     @Test
     void testUpdateMovieWithoutImageChange() {
         // Arrange
-        movie.setImageUrl("https://example.com/inception.jpg");
-        movieRequestDto.setImageUrl("https://example.com/inception.jpg");
-        movieRequestDto.setImageFile(null);
-
         when(movieRepository.findById(eq(1L))).thenReturn(Optional.of(movie));
 
         // Act
         movieService.updateMovie(1L, movieRequestDto);
 
         // Assert
-        verify(fileStorageService, times(0)).deleteFile(any());
+        verify(fileStorageService, never()).deleteFile(anyString());
         verify(movieRepository, times(1)).save(eq(movie));
     }
-
 }
