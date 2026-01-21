@@ -4,6 +4,7 @@ import cinema.booking.cinemabooking.dto.request.SeanceRequestDto;
 import cinema.booking.cinemabooking.dto.response.MovieWithSeancesDto;
 import cinema.booking.cinemabooking.dto.response.SeanceDto;
 import cinema.booking.cinemabooking.dto.response.SeatDto;
+import cinema.booking.cinemabooking.enums.ReservationStatus;
 import cinema.booking.cinemabooking.exception.ResourceNotFoundException;
 import cinema.booking.cinemabooking.exception.SeanceConflictException;
 import cinema.booking.cinemabooking.mapper.MovieMapper;
@@ -12,6 +13,7 @@ import cinema.booking.cinemabooking.mapper.SeatMapper;
 import cinema.booking.cinemabooking.model.*;
 import cinema.booking.cinemabooking.repository.*;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -58,6 +60,9 @@ class SeanceServiceTest {
 
     @Mock
     private SeatMapper seatMapper;
+
+    @Mock
+    private  ReservationRepository reservationRepository;
 
     @InjectMocks
     private SeanceService seanceService;
@@ -269,6 +274,50 @@ class SeanceServiceTest {
         verify(seanceRepository, times(1)).findById(999L);
         verify(seatRepository, never()).findAllByCinemaRoom_Id(any());
     }
+
+    @Test
+    @DisplayName("Should cancel active reservations when seance is deleted")
+    void testDeleteSeance_CancelsReservations() {
+        Reservation activeRes = new Reservation();
+        activeRes.setStatus(ReservationStatus.PENDING);
+        when(reservationRepository.findAllActiveBySeanceId(1L)).thenReturn(List.of(activeRes));
+
+        seanceService.deleteSeance(1L);
+
+        assertThat(activeRes.getStatus()).isEqualTo(ReservationStatus.CANCELLED);
+    }
+
+    @Test
+    @DisplayName("Should call reservationRepository saveAll when active reservations exist")
+    void testDeleteSeance_VerifySaveAllCalled() {
+        Reservation activeRes = new Reservation();
+        when(reservationRepository.findAllActiveBySeanceId(1L)).thenReturn(List.of(activeRes));
+
+        seanceService.deleteSeance(1L);
+
+        verify(reservationRepository, times(1)).saveAll(anyList());
+    }
+
+    @Test
+    @DisplayName("Should not call reservationRepository saveAll when no active reservations exist")
+    void testDeleteSeance_VerifySaveAllNotCalled() {
+        when(reservationRepository.findAllActiveBySeanceId(1L)).thenReturn(List.of());
+
+        seanceService.deleteSeance(1L);
+
+        verify(reservationRepository, never()).saveAll(anyList());
+    }
+
+    @Test
+    @DisplayName("Should call seanceRepository deleteById")
+    void testDeleteSeance_VerifyDeleteByIdCalled() {
+        when(reservationRepository.findAllActiveBySeanceId(1L)).thenReturn(List.of());
+
+        seanceService.deleteSeance(1L);
+
+        verify(seanceRepository, times(1)).deleteById(1L);
+    }
+
 
     @Test
     void testGetSeatsStatusForMovieSuccessfully() {

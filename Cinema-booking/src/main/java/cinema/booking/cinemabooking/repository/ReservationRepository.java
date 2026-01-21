@@ -5,6 +5,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import cinema.booking.cinemabooking.model.Reservation;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -42,4 +44,19 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
      */
     List<Reservation> findAllByStatusAndExpiresAtBefore(ReservationStatus status, LocalDateTime now);
 
+    /**
+     * Find all active (not cancelled) reservations for a specific movie
+     * @param movieId the ID of the movie
+     * @return a list of active reservations for the specified movie
+     */
+    @Query("SELECT DISTINCT r FROM Reservation r JOIN r.tickets t WHERE t.seance.movie.id = :movieId AND r.status != 'CANCELLED'")
+    List<Reservation> findAllActiveByMovieId(@Param("movieId") Long movieId);
+
+    /**
+     * Find all active (not cancelled) reservations for a specific seance
+     * @param seanceId the ID of the seance
+     * @return a list of active reservations for the specified seance
+     */
+    @Query("SELECT DISTINCT r FROM Reservation r JOIN r.tickets t WHERE t.seance.id = :seanceId AND r.status != 'CANCELLED'")
+    List<Reservation> findAllActiveBySeanceId(@Param("seanceId") Long seanceId);
 }

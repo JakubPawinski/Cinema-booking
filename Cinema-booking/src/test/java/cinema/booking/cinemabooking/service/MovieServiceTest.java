@@ -2,10 +2,13 @@ package cinema.booking.cinemabooking.service;
 
 import cinema.booking.cinemabooking.dto.request.MovieRequestDto;
 import cinema.booking.cinemabooking.dto.response.MovieDto;
+import cinema.booking.cinemabooking.enums.ReservationStatus;
 import cinema.booking.cinemabooking.exception.ResourceNotFoundException;
 import cinema.booking.cinemabooking.mapper.MovieMapper;
 import cinema.booking.cinemabooking.model.Movie;
+import cinema.booking.cinemabooking.model.Reservation;
 import cinema.booking.cinemabooking.repository.MovieRepository;
+import cinema.booking.cinemabooking.repository.ReservationRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -40,6 +43,9 @@ class MovieServiceTest {
 
     @Mock
     private MovieMapper movieMapper;
+
+    @Mock
+    private ReservationRepository reservationRepository;
 
     @InjectMocks
     private MovieService movieService;
@@ -353,6 +359,35 @@ class MovieServiceTest {
         verify(movieRepository, never()).save(any());
         verify(fileStorageService, never()).deleteFile(anyString());
     }
+
+    @Test
+    @DisplayName("Should cancel active reservations when movie is deleted")
+    void testDeleteMovie_CancelsReservations() {
+        // Arrange
+        when(movieRepository.findById(1L)).thenReturn(Optional.of(movie));
+        Reservation activeRes = new Reservation();
+        activeRes.setStatus(ReservationStatus.PENDING);
+        when(reservationRepository.findAllActiveByMovieId(1L)).thenReturn(List.of(activeRes));
+
+        // Act
+        movieService.deleteMovie(1L);
+
+        // Assert
+        assertThat(activeRes.getStatus()).isEqualTo(ReservationStatus.CANCELLED);
+        verify(reservationRepository, times(1)).saveAll(anyList());
+    }
+
+    @Test
+    @DisplayName("Should call reservationRepository find method when movie is deleted")
+    void testDeleteMovie_VerifyFindReservationsCall() {
+        when(movieRepository.findById(1L)).thenReturn(Optional.of(movie));
+        when(reservationRepository.findAllActiveByMovieId(1L)).thenReturn(List.of());
+
+        movieService.deleteMovie(1L);
+
+        verify(reservationRepository, times(1)).findAllActiveByMovieId(1L);
+    }
+
 
     @Test
     void testUpdateMovieWithExternalImageUrlChange() {

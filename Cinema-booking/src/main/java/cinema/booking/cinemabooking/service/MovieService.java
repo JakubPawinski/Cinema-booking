@@ -2,10 +2,13 @@ package cinema.booking.cinemabooking.service;
 
 import cinema.booking.cinemabooking.dto.response.MovieDto;
 import cinema.booking.cinemabooking.dto.request.MovieRequestDto;
+import cinema.booking.cinemabooking.enums.ReservationStatus;
 import cinema.booking.cinemabooking.exception.ResourceNotFoundException;
 import cinema.booking.cinemabooking.mapper.MovieMapper;
 import cinema.booking.cinemabooking.model.Movie;
+import cinema.booking.cinemabooking.model.Reservation;
 import cinema.booking.cinemabooking.repository.MovieRepository;
+import cinema.booking.cinemabooking.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -26,6 +29,7 @@ public class MovieService {
     private final MovieRepository movieRepository;
     private final FileStorageService fileStorageService;
     private final MovieMapper movieMapper;
+    private final ReservationRepository reservationRepository;
 
     /**
      * Add new movie
@@ -130,16 +134,19 @@ public class MovieService {
             return new ResourceNotFoundException("Movie not found");
         });
 
-        if (m != null) {
-            if (isLocalImage(m.getImageUrl())) {
-                log.debug("Deleting local image for movie ID: {}", id);
-                fileStorageService.deleteFile(m.getImageUrl());
-            }
-            movieRepository.deleteById(id);
-            log.info("Movie with ID: {} deleted successfully", id);
-        } else {
-            log.warn("Movie with ID: {} not found for deletion", id);
+        List<Reservation> activeReservations = reservationRepository.findAllActiveByMovieId(id);
+        if (!activeReservations.isEmpty()) {
+            log.info("Cancelling {} active reservations for movie ID: {}", activeReservations.size(), id);
+            activeReservations.forEach(r -> r.setStatus(ReservationStatus.CANCELLED));
+            reservationRepository.saveAll(activeReservations);
         }
+        if (isLocalImage(m.getImageUrl())) {
+            log.debug("Deleting local image for movie ID: {}", id);
+            fileStorageService.deleteFile(m.getImageUrl());
+        }
+        movieRepository.deleteById(id);
+        log.info("Movie with ID: {} deleted successfully", id);
+
     }
 
     /**

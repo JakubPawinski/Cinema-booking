@@ -82,7 +82,7 @@ public class Movie {
     /**
      * List of seances for the movie.
      */
-    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @ToString.Exclude // Exclude seances from toString to prevent circular dependencies
     private List<Seance> seances = new ArrayList<>();
 

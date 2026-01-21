@@ -4,6 +4,7 @@ import cinema.booking.cinemabooking.dto.request.SeanceRequestDto;
 import cinema.booking.cinemabooking.dto.response.MovieWithSeancesDto;
 import cinema.booking.cinemabooking.dto.response.SeanceDto;
 import cinema.booking.cinemabooking.dto.response.SeatDto;
+import cinema.booking.cinemabooking.enums.ReservationStatus;
 import cinema.booking.cinemabooking.exception.ResourceNotFoundException;
 import cinema.booking.cinemabooking.exception.SeanceConflictException;
 import cinema.booking.cinemabooking.mapper.MovieMapper;
@@ -39,6 +40,7 @@ public class SeanceService {
     private final SeanceMapper seanceMapper;
     private final MovieMapper movieMapper;
     private final SeatMapper seatMapper;
+    private final ReservationRepository reservationRepository;
 
     /**
      * Get the repertoire of movies with their seances for a specific date.
@@ -173,7 +175,15 @@ public class SeanceService {
     @Transactional
     public void deleteSeance(Long id) {
         log.info("Deleting seance with ID: {}", id);
+
+        List<Reservation> activeReservations = reservationRepository.findAllActiveBySeanceId(id);
+        if (!activeReservations.isEmpty()) {
+            log.info("Cancelling {} active reservations for seance ID: {}", activeReservations.size(), id);
+            activeReservations.forEach(r -> r.setStatus(ReservationStatus.CANCELLED));
+            reservationRepository.saveAll(activeReservations);
+        }
         seanceRepository.deleteById(id);
+        log.info("Seance with ID: {} deleted successfully", id);
     }
 
     /**

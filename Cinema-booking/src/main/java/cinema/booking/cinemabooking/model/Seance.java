@@ -77,7 +77,7 @@ public class Seance {
     /**
      * List of tickets associated with the seance.
      */
-    @OneToMany(mappedBy = "seance")
+    @OneToMany(mappedBy = "seance", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude // Exclude tickets from toString to prevent circular dependencies
     private List<Ticket> tickets;
 }
