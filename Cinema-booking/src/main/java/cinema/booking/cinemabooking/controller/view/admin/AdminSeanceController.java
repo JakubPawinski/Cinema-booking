@@ -2,8 +2,8 @@ package cinema.booking.cinemabooking.controller.view.admin;
 
 import cinema.booking.cinemabooking.dto.request.SeanceRequestDto;
 import cinema.booking.cinemabooking.exception.SeanceConflictException;
-import cinema.booking.cinemabooking.repository.CinemaRoomRepository;
-import cinema.booking.cinemabooking.repository.MovieRepository;
+import cinema.booking.cinemabooking.service.CinemaRoomService;
+import cinema.booking.cinemabooking.service.MovieService;
 import cinema.booking.cinemabooking.service.SeanceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,8 +22,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class AdminSeanceController {
 
     private final SeanceService seanceService;
-    private final MovieRepository movieRepository;
-    private final CinemaRoomRepository roomRepository;
+    private final MovieService movieService;
+    private final CinemaRoomService cinemaRoomService;
 
     /**
      * Display list of seances
@@ -44,8 +44,8 @@ public class AdminSeanceController {
     @GetMapping("/add")
     public String addSeanceForm(Model model) {
         model.addAttribute("seance", new SeanceRequestDto());
-        model.addAttribute("movies", movieRepository.findAll());
-        model.addAttribute("rooms", roomRepository.findAll());
+        model.addAttribute("movies", movieService.getAllMovies());
+        model.addAttribute("rooms", cinemaRoomService.getAllCinemaRooms());
 
         return "admin/seance-form";
     }
@@ -74,8 +74,8 @@ public class AdminSeanceController {
             // Add error message to display in the form
             model.addAttribute("error", e.getMessage());
             model.addAttribute("seance", dto);
-            model.addAttribute("movies", movieRepository.findAll());
-            model.addAttribute("rooms", roomRepository.findAll());
+            model.addAttribute("movies", movieService.getAllMovies());
+            model.addAttribute("rooms", cinemaRoomService.getAllCinemaRooms());
             return "admin/seance-form";
         }
     }

@@ -7,6 +7,7 @@ import cinema.booking.cinemabooking.mapper.UserMapper;
 import cinema.booking.cinemabooking.model.User;
 import cinema.booking.cinemabooking.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
@@ -292,6 +293,59 @@ class UserServiceTest {
         verify(userRepository, never()).save(any(User.class));
         verify(passwordEncoder, never()).encode(anyString());
     }
+
+    @Test
+    @DisplayName("Should return total user count as 10")
+    void testGetUserCount_Value() {
+        when(userRepository.count()).thenReturn(10L);
+
+        assertThat(userService.getUserCount()).isEqualTo(10L);
+    }
+
+    @Test
+    @DisplayName("Should invoke repository count exactly once")
+    void testGetUserCount_VerifyCall() {
+        userService.getUserCount();
+
+        verify(userRepository, times(1)).count();
+    }
+
+    @Test
+    @DisplayName("Should return user when username exists")
+    void testFindByUsername_Success() {
+        when(userRepository.findByUsername("testuser")).thenReturn(java.util.Optional.of(user));
+
+        assertThat(userService.findByUsername("testuser")).isEqualTo(user);
+    }
+
+    @Test
+    @DisplayName("Should invoke repository findByUsername with correct parameter")
+    void testFindByUsername_VerifyCall() {
+        when(userRepository.findByUsername("testuser")).thenReturn(java.util.Optional.of(user));
+
+        userService.findByUsername("testuser");
+
+        verify(userRepository, times(1)).findByUsername("testuser");
+    }
+
+    @Test
+    @DisplayName("Should throw UsernameNotFoundException when user does not exist")
+    void testFindByUsername_NotFound_ThrowsException() {
+        when(userRepository.findByUsername("unknown")).thenReturn(java.util.Optional.empty());
+
+        assertThatThrownBy(() -> userService.findByUsername("unknown"))
+                .isInstanceOf(org.springframework.security.core.userdetails.UsernameNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("Should return correct message in UsernameNotFoundException")
+    void testFindByUsername_NotFound_Message() {
+        when(userRepository.findByUsername("unknown")).thenReturn(java.util.Optional.empty());
+
+        assertThatThrownBy(() -> userService.findByUsername("unknown"))
+                .hasMessageContaining("User not found: unknown");
+    }
+
 
     @Test
     void testRegisterDoesNotSaveIfEmailAlreadyExists() {

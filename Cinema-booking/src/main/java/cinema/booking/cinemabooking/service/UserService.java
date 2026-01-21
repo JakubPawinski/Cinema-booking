@@ -8,9 +8,13 @@ import cinema.booking.cinemabooking.model.User;
 import cinema.booking.cinemabooking.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.Optional;
 
 /**
  * Service for managing users.
@@ -46,6 +50,30 @@ public class UserService {
 
         userRepository.save(user);
         log.info("User {} registered successfully", dto.getUsername());
+    }
+
+    /**
+     * Retrieves the total count of users.
+     *
+     * @return the total number of users
+     */
+    public Long getUserCount() {
+        log.info("Fetching total user count");
+        Long count = userRepository.count();
+        log.info("Total user count: {}", count);
+        return count;
+    }
+
+    /**
+     * Finds a user by username and returns their details in Spring Security format.
+     *
+     * @param username the username to search for
+     * @return User - object with user data
+     */
+    public User findByUsername(String username) {
+        log.info("Searching for user by username: {}", username);
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
     }
 
     /**

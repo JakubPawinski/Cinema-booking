@@ -46,7 +46,7 @@ public class RepertoireRestController {
         log.info("API: Fetching repertoire for date: {}", date);
 
         // Check and set default date if not provided
-        System.out.println("Received date parameter: " + date);
+        log.info("Received date parameter: {}", date);
         if (date == null) {
             log.info("No date provided, using current date {}", LocalDate.now());
             date = LocalDate.now();

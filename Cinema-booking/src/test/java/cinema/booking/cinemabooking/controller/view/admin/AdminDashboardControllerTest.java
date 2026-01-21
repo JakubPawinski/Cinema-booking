@@ -4,10 +4,10 @@ import cinema.booking.cinemabooking.config.SecurityConfig;
 import cinema.booking.cinemabooking.controller.view.GlobalControllerAdvice;
 import cinema.booking.cinemabooking.dto.report.DailySalesDto;
 import cinema.booking.cinemabooking.dto.report.SalesReportDto;
-import cinema.booking.cinemabooking.repository.MovieRepository;
-import cinema.booking.cinemabooking.repository.ReservationRepository;
-import cinema.booking.cinemabooking.repository.UserRepository;
+import cinema.booking.cinemabooking.service.MovieService;
 import cinema.booking.cinemabooking.service.ReportService;
+import cinema.booking.cinemabooking.service.ReservationService;
+import cinema.booking.cinemabooking.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(AdminDashboardController.class)
-@Import({SecurityConfig.class, GlobalControllerAdvice.class})
+@Import({GlobalControllerAdvice.class, SecurityConfig.class})
 @DisplayName("View Tests for AdminDashboardController")
 class AdminDashboardControllerTest {
 
@@ -33,16 +33,16 @@ class AdminDashboardControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private MovieRepository movieRepository;
+    private UserService userService;
 
     @MockitoBean
-    private UserRepository userRepository;
-
-    @MockitoBean
-    private ReservationRepository reservationRepository;
+    private ReservationService reservationService;
 
     @MockitoBean
     private ReportService reportService;
+
+    @MockitoBean
+    private MovieService movieService;
 
     @Test
     @DisplayName("Scenario 1: Admin dashboard - not authenticated - redirect to login")
@@ -64,9 +64,9 @@ class AdminDashboardControllerTest {
     @DisplayName("Scenario 3: Admin dashboard - admin user - success")
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     void testAdminDashboard_Success() throws Exception {
-        when(movieRepository.count()).thenReturn(15L);
-        when(userRepository.count()).thenReturn(42L);
-        when(reservationRepository.count()).thenReturn(128L);
+        when(movieService.getMoviesCount()).thenReturn(15L);
+        when(userService.getUserCount()).thenReturn(42L);
+        when(reservationService.getTotalReservationCount()).thenReturn(128L);
 
         mockMvc.perform(get("/admin"))
                 .andExpect(status().isOk())
@@ -75,18 +75,18 @@ class AdminDashboardControllerTest {
                 .andExpect(model().attribute("usersCount", 42L))
                 .andExpect(model().attribute("reservationsCount", 128L));
 
-        verify(movieRepository, times(1)).count();
-        verify(userRepository, times(1)).count();
-        verify(reservationRepository, times(1)).count();
+        verify(movieService, times(1)).getMoviesCount();
+        verify(userService, times(1)).getUserCount();
+        verify(reservationService, times(1)).getTotalReservationCount();
     }
 
     @Test
     @DisplayName("Scenario 4: Admin dashboard - zero counts")
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     void testAdminDashboard_ZeroCounts() throws Exception {
-        when(movieRepository.count()).thenReturn(0L);
-        when(userRepository.count()).thenReturn(0L);
-        when(reservationRepository.count()).thenReturn(0L);
+        when(movieService.getMoviesCount()).thenReturn(0L);
+        when(userService.getUserCount()).thenReturn(0L);
+        when(reservationService.getTotalReservationCount()).thenReturn(0L);
 
         mockMvc.perform(get("/admin"))
                 .andExpect(status().isOk())
@@ -95,9 +95,9 @@ class AdminDashboardControllerTest {
                 .andExpect(model().attribute("usersCount", 0L))
                 .andExpect(model().attribute("reservationsCount", 0L));
 
-        verify(movieRepository, times(1)).count();
-        verify(userRepository, times(1)).count();
-        verify(reservationRepository, times(1)).count();
+        verify(movieService, times(1)).getMoviesCount();
+        verify(userService, times(1)).getUserCount();
+        verify(reservationService, times(1)).getTotalReservationCount();
     }
 
     @Test

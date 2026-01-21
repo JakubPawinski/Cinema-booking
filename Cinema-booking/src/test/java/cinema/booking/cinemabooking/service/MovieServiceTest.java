@@ -7,6 +7,7 @@ import cinema.booking.cinemabooking.mapper.MovieMapper;
 import cinema.booking.cinemabooking.model.Movie;
 import cinema.booking.cinemabooking.repository.MovieRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -395,4 +396,45 @@ class MovieServiceTest {
         verify(fileStorageService, never()).deleteFile(anyString());
         verify(movieRepository, times(1)).save(eq(movie));
     }
+
+    @Test
+    @DisplayName("Should return list of movies with size 1")
+    void testGetAllMoviesList_Size() {
+        when(movieRepository.findAll()).thenReturn(List.of(movie));
+
+        assertThat(movieService.getAllMovies()).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("Should return list containing 'Inception'")
+    void testGetAllMoviesList_Title() {
+        when(movieRepository.findAll()).thenReturn(List.of(movie));
+
+        assertThat(movieService.getAllMovies().get(0).getTitle()).isEqualTo("Inception");
+    }
+
+    @Test
+    @DisplayName("Should invoke repository findAll exactly once")
+    void testGetAllMoviesList_VerifyRepositoryCall() {
+        movieService.getAllMovies();
+
+        verify(movieRepository, times(1)).findAll();
+    }
+
+    @Test
+    @DisplayName("Should return total count of movies as 5")
+    void testGetMoviesCount_Value() {
+        when(movieRepository.count()).thenReturn(5L);
+
+        assertThat(movieService.getMoviesCount()).isEqualTo(5L);
+    }
+
+    @Test
+    @DisplayName("Should invoke repository count exactly once")
+    void testGetMoviesCount_VerifyRepositoryCall() {
+        movieService.getMoviesCount();
+
+        verify(movieRepository, times(1)).count();
+    }
+
 }

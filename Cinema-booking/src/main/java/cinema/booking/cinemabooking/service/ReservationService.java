@@ -323,6 +323,32 @@ public class ReservationService {
     }
 
     /**
+     * Get a reservation by its ID.
+     * @param reservationId the ID of the reservation
+     * @return the reservation
+     * @throws ResourceNotFoundException if the reservation is not found
+     */
+    public Reservation getReservationById(Long reservationId) {
+        log.debug("Fetching reservation by ID: {}", reservationId);
+        return reservationRepository.findById(reservationId)
+                .orElseThrow(() -> {
+                    log.warn("Reservation with ID {} not found", reservationId);
+                    return new ResourceNotFoundException("Reservation not found");
+                });
+    }
+
+    /**
+     * Get the total count of reservations.
+     * @return total number of reservations
+     */
+    public Long getTotalReservationCount() {
+        log.info("Fetching total reservation count");
+        Long count = reservationRepository.count();
+        log.info("Total reservation count: {}", count);
+        return count;
+    }
+
+    /**
      * Get detailed information about a reservation for a user.
      * @param reservationId the ID of the reservation
      * @param username the username of the user

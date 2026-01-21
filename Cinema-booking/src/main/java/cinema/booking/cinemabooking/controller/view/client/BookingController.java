@@ -2,8 +2,7 @@ package cinema.booking.cinemabooking.controller.view.client;
 
 import cinema.booking.cinemabooking.dto.response.SeanceDto;
 import cinema.booking.cinemabooking.model.Reservation;
-import cinema.booking.cinemabooking.repository.ReservationRepository;
-import cinema.booking.cinemabooking.repository.SeatRepository;
+import cinema.booking.cinemabooking.service.ReservationService;
 import cinema.booking.cinemabooking.service.SeanceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 public class BookingController {
     private final SeanceService seanceService;
-    private final ReservationRepository reservationRepository;
+    private final ReservationService reservationService;
 
     /**
      * Display seat selection for a specific seance
@@ -48,8 +47,7 @@ public class BookingController {
     public String payment(@PathVariable Long reservationId, Model model) {
         log.info("View: Displaying payment page for reservation ID: {}", reservationId);
 
-        Reservation reservation = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new RuntimeException("Reservation not found"));
+        Reservation reservation = reservationService.getReservationById(reservationId);
 
         model.addAttribute("reservation", reservation);
         return "booking/payment";

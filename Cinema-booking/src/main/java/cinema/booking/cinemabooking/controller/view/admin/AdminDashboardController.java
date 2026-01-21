@@ -1,9 +1,9 @@
 package cinema.booking.cinemabooking.controller.view.admin;
 
-import cinema.booking.cinemabooking.repository.MovieRepository;
-import cinema.booking.cinemabooking.repository.ReservationRepository;
-import cinema.booking.cinemabooking.repository.UserRepository;
+import cinema.booking.cinemabooking.service.MovieService;
 import cinema.booking.cinemabooking.service.ReportService;
+import cinema.booking.cinemabooking.service.ReservationService;
+import cinema.booking.cinemabooking.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,10 +17,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/admin")
 @RequiredArgsConstructor
 public class AdminDashboardController {
-    private final MovieRepository movieRepository;
-    private final UserRepository userRepository;
-    private final ReservationRepository reservationRepository;
     private final ReportService reportService;
+    private final UserService userService;
+    private final MovieService movieService;
+    private final ReservationService reservationService;
 
     /**
      * Display admin dashboard with counts of movies, users, and reservations
@@ -29,9 +29,9 @@ public class AdminDashboardController {
      */
     @GetMapping
     public String dashboard(Model model) {
-        long moviesCount = movieRepository.count();
-        long usersCount = userRepository.count();
-        long reservationsCount = reservationRepository.count();
+        long moviesCount = movieService.getMoviesCount();
+        long usersCount = userService.getUserCount();
+        long reservationsCount = reservationService.getTotalReservationCount();
 
         model.addAttribute("moviesCount", moviesCount);
         model.addAttribute("usersCount", usersCount);

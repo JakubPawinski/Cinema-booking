@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 /**
  * Service for managing movie catalog.
  */
@@ -95,6 +97,24 @@ public class MovieService {
                     return new ResourceNotFoundException("Movie not found");
                 });
         return movieMapper.toDto(movie);
+    }
+
+    /**
+     * Get all movies without pagination
+     * @return MovieDto containing all movies
+     */
+    public List<Movie> getAllMovies() {
+        log.debug("Fetching all movies without pagination");
+        return movieRepository.findAll();
+    }
+
+    /**
+     * Get movies count
+     * @return total number of movies
+     */
+    public Long getMoviesCount() {
+        log.debug("Fetching total movies count");
+        return movieRepository.count();
     }
 
     /**

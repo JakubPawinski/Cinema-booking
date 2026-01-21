@@ -3,11 +3,12 @@ package cinema.booking.cinemabooking.controller.view.admin;
 import cinema.booking.cinemabooking.config.SecurityConfig;
 import cinema.booking.cinemabooking.controller.view.GlobalControllerAdvice;
 import cinema.booking.cinemabooking.dto.request.SeanceRequestDto;
-import cinema.booking.cinemabooking.dto.response.SeanceDto;
+import cinema.booking.cinemabooking.dto.response.MovieDto;
+import cinema.booking.cinemabooking.exception.SeanceConflictException;
 import cinema.booking.cinemabooking.model.CinemaRoom;
 import cinema.booking.cinemabooking.model.Movie;
-import cinema.booking.cinemabooking.repository.CinemaRoomRepository;
-import cinema.booking.cinemabooking.repository.MovieRepository;
+import cinema.booking.cinemabooking.service.CinemaRoomService;
+import cinema.booking.cinemabooking.service.MovieService;
 import cinema.booking.cinemabooking.service.SeanceService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -38,10 +39,10 @@ class AdminSeanceControllerTest {
     private SeanceService seanceService;
 
     @MockitoBean
-    private MovieRepository movieRepository;
+    private MovieService movieService;
 
     @MockitoBean
-    private CinemaRoomRepository roomRepository;
+    private CinemaRoomService cinemaRoomService;
 
     @Test
     @DisplayName("Scenario 1: List seances - not authenticated - redirect to login")
@@ -63,29 +64,7 @@ class AdminSeanceControllerTest {
     @DisplayName("Scenario 3: List seances - admin user - success")
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     void testListSeances_Success() throws Exception {
-        SeanceDto seance1 = SeanceDto.builder()
-                .id(1L)
-                .movieTitle("Inception")
-                .startTime(LocalDateTime.of(2024, 12, 20, 18, 30))
-                .endTime(LocalDateTime.of(2024, 12, 20, 20, 30))
-                .regularTicketPrice(12.50)
-                .reducedTicketPrice(8.00)
-                .roomName("Room A")
-                .movieId(1L)
-                .build();
-
-        SeanceDto seance2 = SeanceDto.builder()
-                .id(2L)
-                .movieTitle("The Matrix")
-                .startTime(LocalDateTime.of(2024, 12, 20, 21, 0))
-                .endTime(LocalDateTime.of(2024, 12, 20, 23, 0))
-                .regularTicketPrice(12.50)
-                .reducedTicketPrice(8.00)
-                .roomName("Room B")
-                .movieId(2L)
-                .build();
-
-        when(seanceService.getAllSeances()).thenReturn(List.of(seance1, seance2));
+        when(seanceService.getAllSeances()).thenReturn(List.of());
 
         mockMvc.perform(get("/admin/seances"))
                 .andExpect(status().isOk())
@@ -129,16 +108,16 @@ class AdminSeanceControllerTest {
         room.setId(1L);
         room.setName("Room A");
 
-        when(movieRepository.findAll()).thenReturn(List.of(movie));
-        when(roomRepository.findAll()).thenReturn(List.of(room));
+        when(movieService.getAllMovies()).thenReturn(List.of(movie));
+        when(cinemaRoomService.getAllCinemaRooms()).thenReturn(List.of(room));
 
         mockMvc.perform(get("/admin/seances/add"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/seance-form"))
                 .andExpect(model().attributeExists("seance", "movies", "rooms"));
 
-        verify(movieRepository, times(1)).findAll();
-        verify(roomRepository, times(1)).findAll();
+        verify(movieService, times(1)).getAllMovies();
+        verify(cinemaRoomService, times(1)).getAllCinemaRooms();
     }
 
     @Test
@@ -172,11 +151,11 @@ class AdminSeanceControllerTest {
         room.setId(1L);
         room.setName("Room A");
 
-        doThrow(new IllegalStateException("Seance time conflicts with existing seance"))
+        doThrow(new SeanceConflictException("Seance time conflicts with existing seance"))
                 .when(seanceService).createSeance(any(SeanceRequestDto.class));
 
-        when(movieRepository.findAll()).thenReturn(List.of(movie));
-        when(roomRepository.findAll()).thenReturn(List.of(room));
+        when(movieService.getAllMovies()).thenReturn(List.of(movie));
+        when(cinemaRoomService.getAllCinemaRooms()).thenReturn(List.of(room));
 
         mockMvc.perform(post("/admin/seances/add")
                         .param("movieId", "1")
@@ -189,8 +168,8 @@ class AdminSeanceControllerTest {
                 .andExpect(model().attributeExists("error", "movies", "rooms"));
 
         verify(seanceService, times(1)).createSeance(any(SeanceRequestDto.class));
-        verify(movieRepository, times(1)).findAll();
-        verify(roomRepository, times(1)).findAll();
+        verify(movieService, times(1)).getAllMovies();
+        verify(cinemaRoomService, times(1)).getAllCinemaRooms();
     }
 
     @Test

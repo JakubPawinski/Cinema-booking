@@ -2,6 +2,7 @@ package cinema.booking.cinemabooking.config;
 
 import cinema.booking.cinemabooking.model.User;
 import cinema.booking.cinemabooking.repository.UserRepository;
+import cinema.booking.cinemabooking.service.UserService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,7 +18,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     /**
      *
@@ -29,8 +30,7 @@ public class CustomUserDetailsService implements UserDetailsService {
      */
     @Override
     public UserDetails loadUserByUsername(@NonNull String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+        User user = userService.findByUsername(username);
 
         // Convert User model to spring security object
         return org.springframework.security.core.userdetails.User.builder()

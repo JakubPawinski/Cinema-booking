@@ -12,6 +12,7 @@ import cinema.booking.cinemabooking.mapper.TicketMapper;
 import cinema.booking.cinemabooking.model.*;
 import cinema.booking.cinemabooking.repository.*;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -710,6 +711,49 @@ class ReservationServiceTest {
         assertThat(expiredReservation.getStatus()).isEqualTo(ReservationStatus.CANCELLED);
         verify(reservationRepository, times(1)).saveAll(any());
     }
+
+    @Test
+    @DisplayName("Should return reservation when ID exists")
+    void testGetReservationById_Success() {
+        when(reservationRepository.findById(1L)).thenReturn(Optional.of(reservation));
+
+        assertThat(reservationService.getReservationById(1L)).isEqualTo(reservation);
+    }
+
+    @Test
+    @DisplayName("Should throw ResourceNotFoundException when reservation ID does not exist")
+    void testGetReservationById_NotFound_ThrowsException() {
+        when(reservationRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> reservationService.getReservationById(999L))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("Should return correct message in ResourceNotFoundException")
+    void testGetReservationById_NotFound_Message() {
+        when(reservationRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> reservationService.getReservationById(999L))
+                .hasMessageContaining("Reservation not found");
+    }
+
+    @Test
+    @DisplayName("Should return total count of reservations")
+    void testGetTotalReservationCount_Value() {
+        when(reservationRepository.count()).thenReturn(42L);
+
+        assertThat(reservationService.getTotalReservationCount()).isEqualTo(42L);
+    }
+
+    @Test
+    @DisplayName("Should invoke repository count exactly once when fetching total count")
+    void testGetTotalReservationCount_VerifyCall() {
+        reservationService.getTotalReservationCount();
+
+        verify(reservationRepository, times(1)).count();
+    }
+
 
     @Test
     void testAutoCancelExpiredReservationsWithNoExpiredReservations() {
